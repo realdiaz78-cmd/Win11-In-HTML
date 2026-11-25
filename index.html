@@ -19,6 +19,51 @@
       user-select: none;
     }
 
+    /* Pantalla de arranque (Startup - 2000ms) */
+    #startup-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      background-color: #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 48px 24px 56px;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    #startup-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .startup-spacer {
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    #startup-logo {
+      width: clamp(92px, 18vw, 136px);
+      height: auto;
+      max-height: 160px;
+      object-fit: contain;
+      margin: auto;
+      transform: translateY(-28px);
+      display: block;
+    }
+
+    #startup-loader {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      flex-shrink: 0;
+      display: block;
+    }
+
     /* Pantalla de bloqueo (Lock Screen) */
     #lock-screen {
       position: fixed;
@@ -1496,6 +1541,13 @@
   </style>
 </head>
 <body>
+  <!-- Pantalla de arranque (2000 ms) -->
+  <section id="startup-screen" aria-label="Iniciando sistema">
+    <div class="startup-spacer" aria-hidden="true"></div>
+    <img id="startup-logo" src="public/img/startup/asset/bootLogo.png" alt="Logo de inicio">
+    <img id="startup-loader" src="public/img/startup/asset/loader.gif" alt="Cargando...">
+  </section>
+
   <!-- Pantalla de bloqueo -->
   <section id="lock-screen" aria-label="Pantalla de bloqueo">
     <div class="lock-bg-layer" aria-hidden="true"></div>
@@ -1680,6 +1732,24 @@
       </div>
     </div>
   </footer>
+
+  <!-- Temporizador de Startup (2000 ms) -->
+  <script>
+    (() => {
+      const STARTUP_DURATION_MS = 2000;
+
+      function finishStartup() {
+        const startupEl = document.getElementById("startup-screen");
+        if (!startupEl || startupEl.classList.contains("hidden")) return;
+        startupEl.classList.add("hidden");
+        startupEl.setAttribute("aria-hidden", "true");
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        setTimeout(finishStartup, STARTUP_DURATION_MS);
+      });
+    })();
+  </script>
 
   <!-- Gestor de Ventanas, App Nativa de Ajustes e Iframes de Aplicaciones -->
   <script>
