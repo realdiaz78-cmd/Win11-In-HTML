@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Tiempo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #eef3f9;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .wx-shell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Barra lateral de ubicaciones */
+    .wx-sidebar {
+      width: 176px;
+      min-width: 142px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+
+    .wx-side-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      padding: 0 8px 4px;
+    }
+
+    .wx-city-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #1e293b;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .wx-city-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .wx-city-btn.active {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #0067c0;
+      font-weight: 600;
+    }
+
+    /* Área principal */
+    .wx-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 16px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .wx-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .wx-search-form {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 280px;
+    }
+
+    .wx-search-form input {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      padding: 6px 10px;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: inherit;
+      font-size: 12px;
+      outline: none;
+      user-select: text;
+    }
+
+    .wx-btn {
+      padding: 6px 10px;
+      border-radius: 7px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .wx-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .wx-btn.primary {
+      background: #0067c0;
+      border-color: #0067c0;
+      color: #ffffff;
+    }
+
+    .wx-btn.primary:hover {
+      background: #00559f;
+    }
+
+    /* Banner actual */
+    .wx-hero {
+      border-radius: 10px;
+      padding: 16px 18px;
+      background: linear-gradient(120deg, #0369a1 0%, #0284c7 55%, #38bdf8 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      box-shadow: 0 8px 20px rgba(2, 132, 199, 0.22);
+    }
+
+    .wx-hero-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .wx-temp-big {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .wx-city-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .wx-cond-text {
+      font-size: 12px;
+      color: #e0f2fe;
+    }
+
+    .wx-metrics {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 11.5px;
+      background: rgba(15, 23, 42, 0.2);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .wx-block-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    .wx-row-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .wx-mini-card {
+      flex: 0 0 84px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      text-align: center;
+    }
+
+    .wx-mini-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .wx-mini-temp {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .wx-mini-sub {
+      font-size: 10px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="wx-shell">
+    <aside class="wx-sidebar">
+      <div class="wx-side-title">Ubicaciones</div>
+      <div id="wx-cities-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+    </aside>
+
+    <main class="wx-main">
+      <header class="wx-topbar">
+        <form id="wx-search-form" class="wx-search-form">
+          <input id="wx-city-input" type="text" placeholder="Buscar ciudad...">
+          <button class="wx-btn primary" type="submit">Ir</button>
+        </form>
+        <button id="wx-unit-btn" class="wx-btn" type="button">Unidad: °C</button>
+      </header>
+
+      <section class="wx-hero">
+        <div class="wx-hero-left">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+          <div>
+            <div class="wx-temp-big" id="wx-temp">--°</div>
+            <div class="wx-city-name" id="wx-city">Ciudad</div>
+            <div class="wx-cond-text" id="wx-cond">Despejado</div>
+          </div>
+        </div>
+
+        <div class="wx-metrics">
+          <div>Sensación: <strong id="wx-feels">--°</strong></div>
+          <div>Humedad: <strong id="wx-hum">--%</strong></div>
+          <div>Viento: <strong id="wx-wind">-- km/h</strong></div>
+        </div>
+      </section>
+
+      <div>
+        <div class="wx-block-title">Por horas</div>
+        <div id="wx-hourly-row" class="wx-row-scroll"></div>
+      </div>
+
+      <div>
+        <div class="wx-block-title">Próximos días</div>
+        <div id="wx-daily-row" class="wx-row-scroll"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const CITIES = [
+      { name: "Rosario", tempC: 28, feelsC: 29, hum: 54, wind: 14, cond: "Despejado" },
+      { name: "Buenos Aires", tempC: 26, feelsC: 27, hum: 60, wind: 16, cond: "Algo nublado" },
+      { name: "Madrid", tempC: 14, feelsC: 13, hum: 52, wind: 11, cond: "Parcialmente soleado" },
+      { name: "Tokio", tempC: 17, feelsC: 16, hum: 58, wind: 9, cond: "Brisa fresca" }
+    ];
+
+    let selectedIdx = 0;
+    let useFahrenheit = false;
+
+    function fmtTemp(cVal) {
+      const val = useFahrenheit ? Math.round((cVal * 9) / 5 + 32) : Math.round(cVal);
+      return `${val}°${useFahrenheit ? "F" : "C"}`;
+    }
+
+    function renderCities() {
+      const listEl = document.getElementById("wx-cities-list");
+      listEl.innerHTML = "";
+      CITIES.forEach((c, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `wx-city-btn ${idx === selectedIdx ? "active" : ""}`;
+        btn.innerHTML = `<span>${c.name}</span><strong>${fmtTemp(c.tempC)}</strong>`;
+        btn.addEventListener("click", () => {
+          selectedIdx = idx;
+          renderAll();
+        });
+        listEl.appendChild(btn);
+      });
+    }
+
+    function renderWeather() {
+      const city = CITIES[selectedIdx] || CITIES[0];
+      document.getElementById("wx-city").textContent = city.name;
+      document.getElementById("wx-cond").textContent = city.cond;
+      document.getElementById("wx-temp").textContent = fmtTemp(city.tempC);
+      document.getElementById("wx-feels").textContent = fmtTemp(city.feelsC);
+      document.getElementById("wx-hum").textContent = `${city.hum}%`;
+      document.getElementById("wx-wind").textContent = `${city.wind} km/h`;
+
+      const hourlyEl = document.getElementById("wx-hourly-row");
+      hourlyEl.innerHTML = "";
+      const offsets = [0, 1, 2, -1, -3, -5];
+      offsets.forEach((off, i) => {
+        const hourLabel = i === 0 ? "Ahora" : `${String((18 + i * 2) % 24).padStart(2, "0")}:00`;
+        const card = document.createElement("div");
+        card.className = "wx-mini-card";
+        card.innerHTML = `
+          <span class="wx-mini-label">${hourLabel}</span>
+          <span class="wx-mini-temp">${fmtTemp(city.tempC + off)}</span>
+          <span class="wx-mini-sub">${city.cond}</span>
+        `;
+        hourlyEl.appendChild(card);
+      });
+
+      const dailyEl = document.getElementById("wx-daily-row");
+      dailyEl.innerHTML = "";
+      const days = ["Hoy", "Mié", "Jue", "Vie", "Sáb"];
+      const dayDelta = [0, 1, -1, 2, 1];
+      days.forEach((d, i) => {
+        const card = document.createElement("div");
+        card.className = "wx-mini-card";
+        card.innerHTML = `
+          <span class="wx-mini-label">${d}</span>
+          <span class="wx-mini-temp">${fmtTemp(city.tempC + dayDelta[i])}</span>
+          <span class="wx-mini-sub">Mín ${fmtTemp(city.tempC - 6 + dayDelta[i])}</span>
+        `;
+        dailyEl.appendChild(card);
+      });
+    }
+
+    function renderAll() {
+      renderCities();
+      renderWeather();
+    }
+
+    document.getElementById("wx-search-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = document.getElementById("wx-city-input");
+      const name = input.value.trim();
+      if (!name) return;
+
+      const existingIdx = CITIES.findIndex((c) => c.name.toLowerCase() === name.toLowerCase());
+      if (existingIdx !== -1) {
+        selectedIdx = existingIdx;
+      } else {
+        const pseudoTemp = 15 + (name.length * 3) % 16;
+        CITIES.push({
+          name,
+          tempC: pseudoTemp,
+          feelsC: pseudoTemp + 1,
+          hum: 50 + (name.length * 4) % 30,
+          wind: 8 + (name.length * 2) % 14,
+          cond: pseudoTemp >= 24 ? "Soleado" : "Nubes dispersas"
+        });
+        selectedIdx = CITIES.length - 1;
+      }
+
+      input.value = "";
+      renderAll();
+    });
+
+    document.getElementById("wx-unit-btn").addEventListener("click", () => {
+      useFahrenheit = !useFahrenheit;
+      document.getElementById("wx-unit-btn").textContent = `Unidad: ${useFahrenheit ? "°F" : "°C"}`;
+      renderAll();
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>

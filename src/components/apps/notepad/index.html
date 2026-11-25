@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloc de notas</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      overflow: hidden;
+    }
+
+    .notepad-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+
+    .notepad-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 12px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+      user-select: none;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tool-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .tool-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .tool-btn.primary {
+      background: #0067c0;
+      border-color: #0067c0;
+      color: #ffffff;
+    }
+
+    .tool-btn.primary:hover {
+      background: #00559f;
+    }
+
+    .font-readout {
+      font-size: 11px;
+      color: #475569;
+      min-width: 34px;
+      text-align: center;
+    }
+
+    .editor-wrap {
+      flex: 1;
+      min-height: 0;
+      background: #ffffff;
+    }
+
+    #notepad-area {
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      padding: 16px 18px;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .notepad-statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 5px 12px;
+      background: #f1f5f9;
+      border-top: 1px solid #e2e8f0;
+      font-size: 11px;
+      color: #475569;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="notepad-shell">
+    <div class="notepad-toolbar">
+      <div class="toolbar-group">
+        <button id="btn-new" class="tool-btn" type="button" title="Nueva nota">
+          <span>📄</span>
+          <span>Nuevo</span>
+        </button>
+        <button id="btn-save" class="tool-btn primary" type="button" title="Guardar nota">
+          <span>💾</span>
+          <span>Guardar</span>
+        </button>
+        <button id="btn-download" class="tool-btn" type="button" title="Descargar .txt">
+          <span>⬇️</span>
+          <span>.TXT</span>
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-font-dec" class="tool-btn" type="button" title="Disminuir letra">A-</button>
+        <span id="font-size-label" class="font-readout">14px</span>
+        <button id="btn-font-inc" class="tool-btn" type="button" title="Aumentar letra">A+</button>
+      </div>
+    </div>
+
+    <div class="editor-wrap">
+      <textarea id="notepad-area" placeholder="Escribe aquí tus notas..."></textarea>
+    </div>
+
+    <div class="notepad-statusbar">
+      <span id="status-stats">Líneas: 1 | Caracteres: 0</span>
+      <span id="status-save">Listo</span>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "win11_html_notepad_content_v1";
+    const FONT_KEY = "win11_html_notepad_font_v1";
+
+    const areaEl = document.getElementById("notepad-area");
+    const statsEl = document.getElementById("status-stats");
+    const saveStatusEl = document.getElementById("status-save");
+    const fontLabelEl = document.getElementById("font-size-label");
+    const btnNew = document.getElementById("btn-new");
+    const btnSave = document.getElementById("btn-save");
+    const btnDownload = document.getElementById("btn-download");
+    const btnFontDec = document.getElementById("btn-font-dec");
+    const btnFontInc = document.getElementById("btn-font-inc");
+
+    let currentFontSize = Number(localStorage.getItem(FONT_KEY)) || 14;
+
+    function applyFontSize() {
+      currentFontSize = Math.min(28, Math.max(11, currentFontSize));
+      areaEl.style.fontSize = `${currentFontSize}px`;
+      fontLabelEl.textContent = `${currentFontSize}px`;
+      localStorage.setItem(FONT_KEY, String(currentFontSize));
+    }
+
+    function updateStats() {
+      const text = areaEl.value;
+      const lines = text.length === 0 ? 1 : text.split("\n").length;
+      const chars = text.length;
+      statsEl.textContent = `Líneas: ${lines} | Caracteres: ${chars}`;
+    }
+
+    function saveNote(labelText = "Guardado") {
+      try {
+        localStorage.setItem(STORAGE_KEY, areaEl.value);
+        saveStatusEl.textContent = labelText;
+      } catch {
+        saveStatusEl.textContent = "Sin espacio local";
+      }
+    }
+
+    areaEl.addEventListener("input", () => {
+      updateStats();
+      saveNote("Guardado automáticamente");
+    });
+
+    btnNew.addEventListener("click", () => {
+      if (areaEl.value.trim().length > 0) {
+        const ok = confirm("¿Crear una nota nueva y borrar el texto actual?");
+        if (!ok) return;
+      }
+      areaEl.value = "";
+      updateStats();
+      saveNote("Nota nueva");
+      areaEl.focus();
+    });
+
+    btnSave.addEventListener("click", () => {
+      saveNote("Guardado");
+    });
+
+    btnDownload.addEventListener("click", () => {
+      const blob = new Blob([areaEl.value], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "nota-win11.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+      saveStatusEl.textContent = "Descargado como nota-win11.txt";
+    });
+
+    btnFontDec.addEventListener("click", () => {
+      currentFontSize -= 1;
+      applyFontSize();
+    });
+
+    btnFontInc.addEventListener("click", () => {
+      currentFontSize += 1;
+      applyFontSize();
+    });
+
+    // Cargar contenido guardado previamente
+    const savedText = localStorage.getItem(STORAGE_KEY);
+    if (savedText !== null) {
+      areaEl.value = savedText;
+      saveStatusEl.textContent = "Nota recuperada";
+    }
+
+    applyFontSize();
+    updateStats();
+  </script>
+</body>
+</html>

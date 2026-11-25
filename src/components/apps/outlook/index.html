@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Correo · Outlook</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .mail-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Barra superior tipo Outlook */
+    .mail-topbar {
+      height: 44px;
+      background: #0f6cbd;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 12px;
+      flex-shrink: 0;
+    }
+
+    .mail-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mail-app-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .mail-compose-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 5px;
+      border: none;
+      background: #ffffff;
+      color: #0f6cbd;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.14s ease, transform 0.1s ease;
+    }
+
+    .mail-compose-btn:hover {
+      background: #eff6ff;
+    }
+
+    .mail-compose-btn:active {
+      transform: scale(0.98);
+    }
+
+    .mail-search-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 6px;
+      padding: 4px 10px;
+      width: min(250px, 46%);
+      color: #ffffff;
+    }
+
+    .mail-search-box input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #ffffff;
+      font-size: 12px;
+      font-family: inherit;
+      user-select: text;
+    }
+
+    .mail-search-box input::placeholder {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    /* Cuerpo de 3 columnas */
+    .mail-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Columna 1: Carpetas */
+    .mail-folders {
+      width: 168px;
+      min-width: 138px;
+      background: #f0f3f7;
+      border-right: 1px solid #e1e6ed;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow-y: auto;
+    }
+
+    .folder-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      color: #1e293b;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .folder-btn:hover {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .folder-btn.active {
+      background: #e1effb;
+      color: #0f6cbd;
+      font-weight: 600;
+    }
+
+    .folder-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: #0f6cbd;
+      color: #ffffff;
+    }
+
+    /* Columna 2: Lista de mensajes */
+    .mail-list-pane {
+      width: 245px;
+      min-width: 190px;
+      background: #ffffff;
+      border-right: 1px solid #e1e6ed;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .mail-list-header {
+      padding: 9px 12px;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mail-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .mail-item {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: background 0.12s ease;
+    }
+
+    .mail-item:hover {
+      background: #f8fafc;
+    }
+
+    .mail-item.selected {
+      background: #eff6ff;
+      border-left-color: #0f6cbd;
+    }
+
+    .mail-item.unread .mail-sender,
+    .mail-item.unread .mail-subject {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .mail-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .mail-sender {
+      font-size: 12px;
+      font-weight: 500;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mail-time {
+      font-size: 10px;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .mail-subject {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mail-preview {
+      font-size: 11px;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mail-star-btn {
+      border: none;
+      background: transparent;
+      color: #cbd5e1;
+      font-size: 12px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .mail-star-btn.starred {
+      color: #eab308;
+    }
+
+    /* Columna 3: Lectura / Redacción */
+    .mail-reading-pane {
+      flex: 1;
+      min-width: 0;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 14px 18px;
+    }
+
+    .mail-toolbar-mini {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .m-btn {
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .m-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .m-btn.primary {
+      background: #0f6cbd;
+      border-color: #0f6cbd;
+      color: #ffffff;
+    }
+
+    .m-btn.primary:hover {
+      background: #0c5aa0;
+    }
+
+    .mail-read-subject {
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+      user-select: text;
+    }
+
+    .mail-read-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 11.5px;
+      color: #475569;
+    }
+
+    .mail-read-body {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #1e293b;
+      white-space: pre-wrap;
+      user-select: text;
+    }
+
+    .mail-empty-read {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 12.5px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Formulario de redacción */
+    .compose-form {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .compose-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .compose-field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .compose-field input,
+    .compose-field textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      color: #0f172a;
+      background: #ffffff;
+      outline: none;
+      user-select: text;
+    }
+
+    .compose-field textarea {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .compose-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+  </style>
+</head>
+<body>
+  <div class="mail-shell">
+    <header class="mail-topbar">
+      <div class="mail-topbar-left">
+        <span class="mail-app-label">Outlook</span>
+        <button id="btn-new-mail" class="mail-compose-btn" type="button">✉ Correo nuevo</button>
+      </div>
+
+      <div class="mail-search-box">
+        <span>🔍</span>
+        <input id="mail-search" type="text" placeholder="Buscar">
+      </div>
+    </header>
+
+    <div class="mail-body">
+      <aside class="mail-folders">
+        <button class="folder-btn active" type="button" data-folder="inbox">
+          <span>📥 Bandeja de entrada</span>
+          <span id="unread-badge" class="folder-badge">0</span>
+        </button>
+        <button class="folder-btn" type="button" data-folder="sent">
+          <span>📤 Elementos enviados</span>
+        </button>
+        <button class="folder-btn" type="button" data-folder="drafts">
+          <span>📝 Borradores</span>
+        </button>
+        <button class="folder-btn" type="button" data-folder="archive">
+          <span>🗂️ Archivo</span>
+        </button>
+        <button class="folder-btn" type="button" data-folder="deleted">
+          <span>🗑️ Eliminados</span>
+        </button>
+      </aside>
+
+      <section class="mail-list-pane">
+        <div class="mail-list-header">
+          <span id="list-title">Bandeja de entrada</span>
+          <span id="list-count" style="font-size: 11px; color: #64748b;">0</span>
+        </div>
+        <div id="mail-list" class="mail-list"></div>
+      </section>
+
+      <main id="mail-reading-pane" class="mail-reading-pane"></main>
+    </div>
+  </div>
+
+  <script>
+    const MAIL_STORAGE_KEY = "win11_outlook_correo_v1";
+
+    const DEFAULT_MESSAGES = [
+      {
+        id: "m-1",
+        folder: "inbox",
+        sender: "Microsoft 365",
+        email: "no-reply@microsoft.com",
+        subject: "Bienvenido a tu bandeja de Correo",
+        preview: "Todo listo para leer, responder o redactar mensajes en tu escritorio.",
+        time: "09:15",
+        unread: true,
+        starred: true,
+        body: "Hola,\n\nTu cliente de Correo estilo Outlook está activo dentro de Win11 in HTML.\n\nPuedes cambiar de carpeta, buscar mensajes, marcar favoritos o pulsar 'Correo nuevo' para enviar o guardar un borrador."
+      },
+      {
+        id: "m-2",
+        folder: "inbox",
+        sender: "Equipo de Desarrollo",
+        email: "dev@win11html.local",
+        subject: "Checklist de apps modulares",
+        preview: "Calculadora, Paint, Fotos, Ajustes y Correo ya están integrados.",
+        time: "Ayer",
+        unread: true,
+        starred: false,
+        body: "Ya quedaron listas varias piezas clave del entorno:\n- Ventanas arrastrables, minimizar, maximizar y cerrar\n- Ajustes nativo con fondos de pantalla\n- Fotos con visor y cambio de fondo\n- Correo tipo Outlook con carpetas y redacción"
+      },
+      {
+        id: "m-3",
+        folder: "sent",
+        sender: "Yo",
+        email: "usuario@win11html.local",
+        subject: "Pruebas del escritorio en navegador",
+        preview: "Probando ventanas múltiples y animaciones de la barra de tareas.",
+        time: "Lun",
+        unread: false,
+        starred: false,
+        body: "Probando varias ventanas abiertas al mismo tiempo sobre el escritorio y revisando que la barra de tareas refleje cada app."
+      },
+      {
+        id: "m-4",
+        folder: "drafts",
+        sender: "Borrador",
+        email: "",
+        subject: "Notas rápidas para la próxima app",
+        preview: "Revisar íconos y detalles de la siguiente aplicación...",
+        time: "Borrador",
+        unread: false,
+        starred: false,
+        body: "Revisar íconos y detalles de la siguiente aplicación antes de pasarla a producción."
+      }
+    ];
+
+    function loadMessages() {
+      try {
+        const raw = localStorage.getItem(MAIL_STORAGE_KEY);
+        if (!raw) return [...DEFAULT_MESSAGES];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) && parsed.length ? parsed : [...DEFAULT_MESSAGES];
+      } catch {
+        return [...DEFAULT_MESSAGES];
+      }
+    }
+
+    let messages = loadMessages();
+    let currentFolder = "inbox";
+    let selectedId = messages[0] ? messages[0].id : null;
+    let searchText = "";
+    let composingMode = false;
+
+    function saveMessages() {
+      try {
+        localStorage.setItem(MAIL_STORAGE_KEY, JSON.stringify(messages));
+      } catch {}
+    }
+
+    function getFolderMessages() {
+      const q = searchText.trim().toLowerCase();
+      return messages.filter((m) => {
+        const inFolder = m.folder === currentFolder;
+        const matchesQuery =
+          !q ||
+          m.sender.toLowerCase().includes(q) ||
+          m.subject.toLowerCase().includes(q) ||
+          m.body.toLowerCase().includes(q);
+        return inFolder && matchesQuery;
+      });
+    }
+
+    function updateUnreadBadge() {
+      const badge = document.getElementById("unread-badge");
+      const count = messages.filter((m) => m.folder === "inbox" && m.unread).length;
+      badge.textContent = String(count);
+      badge.style.display = count > 0 ? "inline-block" : "none";
+    }
+
+    function renderList() {
+      const folderTitles = {
+        inbox: "Bandeja de entrada",
+        sent: "Elementos enviados",
+        drafts: "Borradores",
+        archive: "Archivo",
+        deleted: "Elementos eliminados"
+      };
+
+      document.getElementById("list-title").textContent = folderTitles[currentFolder] || "Correo";
+      const listEl = document.getElementById("mail-list");
+      const items = getFolderMessages();
+      document.getElementById("list-count").textContent = String(items.length);
+
+      if (items.length === 0) {
+        listEl.innerHTML = `<div style="padding: 18px; font-size: 12px; color: #64748b; text-align: center;">No hay mensajes aquí.</div>`;
+        return;
+      }
+
+      if (!items.some((m) => m.id === selectedId)) {
+        selectedId = items[0].id;
+      }
+
+      listEl.innerHTML = "";
+      items.forEach((msg) => {
+        const div = document.createElement("div");
+        div.className = `mail-item ${msg.id === selectedId && !composingMode ? "selected" : ""} ${msg.unread ? "unread" : ""}`;
+
+        div.innerHTML = `
+          <div class="mail-item-row">
+            <span class="mail-sender">${escapeHtml(msg.sender)}</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button class="mail-star-btn ${msg.starred ? "starred" : ""}" type="button" title="Favorito">★</button>
+              <span class="mail-time">${escapeHtml(msg.time)}</span>
+            </div>
+          </div>
+          <div class="mail-subject">${escapeHtml(msg.subject || "(Sin asunto)")}</div>
+          <div class="mail-preview">${escapeHtml(msg.preview || msg.body || "")}</div>
+        `;
+
+        div.addEventListener("click", () => {
+          composingMode = false;
+          selectedId = msg.id;
+          msg.unread = false;
+          saveMessages();
+          renderAll();
+        });
+
+        div.querySelector(".mail-star-btn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          msg.starred = !msg.starred;
+          saveMessages();
+          renderList();
+        });
+
+        listEl.appendChild(div);
+      });
+    }
+
+    function renderReadingPane() {
+      const pane = document.getElementById("mail-reading-pane");
+
+      if (composingMode) {
+        pane.innerHTML = `
+          <div class="mail-toolbar-mini">
+            <button id="btn-cancel-compose" class="m-btn" type="button">← Volver</button>
+            <span style="font-size: 12px; font-weight: 600; color: #0f6cbd;">Nuevo mensaje</span>
+          </div>
+          <form id="compose-form" class="compose-form">
+            <div class="compose-field">
+              <label for="cmp-to">Para</label>
+              <input id="cmp-to" type="text" placeholder="destinatario@ejemplo.com" required>
+            </div>
+            <div class="compose-field">
+              <label for="cmp-subject">Asunto</label>
+              <input id="cmp-subject" type="text" placeholder="Escribe un asunto">
+            </div>
+            <div class="compose-field">
+              <label for="cmp-body">Mensaje</label>
+              <textarea id="cmp-body" placeholder="Escribe tu mensaje aquí..."></textarea>
+            </div>
+            <div class="compose-actions">
+              <button id="btn-save-draft" class="m-btn" type="button">Guardar borrador</button>
+              <button class="m-btn primary" type="submit">Enviar</button>
+            </div>
+          </form>
+        `;
+
+        document.getElementById("btn-cancel-compose").addEventListener("click", () => {
+          composingMode = false;
+          renderReadingPane();
+        });
+
+        const createEntry = (targetFolder) => {
+          const toVal = document.getElementById("cmp-to").value.trim() || "Sin destinatario";
+          const subjVal = document.getElementById("cmp-subject").value.trim() || "(Sin asunto)";
+          const bodyVal = document.getElementById("cmp-body").value.trim();
+          const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+          const newMsg = {
+            id: `m-${Date.now()}`,
+            folder: targetFolder,
+            sender: targetFolder === "sent" ? `Para: ${toVal}` : "Borrador",
+            email: toVal,
+            subject: subjVal,
+            preview: bodyVal.slice(0, 70) || "(Sin contenido)",
+            time: targetFolder === "sent" ? nowTime : "Borrador",
+            unread: false,
+            starred: false,
+            body: bodyVal
+          };
+
+          messages.unshift(newMsg);
+          saveMessages();
+          currentFolder = targetFolder;
+          selectedId = newMsg.id;
+          composingMode = false;
+          document.querySelectorAll(".folder-btn[data-folder]").forEach((b) => {
+            b.classList.toggle("active", b.dataset.folder === currentFolder);
+          });
+          renderAll();
+        };
+
+        document.getElementById("btn-save-draft").addEventListener("click", () => createEntry("drafts"));
+        document.getElementById("compose-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          createEntry("sent");
+        });
+        return;
+      }
+
+      const items = getFolderMessages();
+      const msg = items.find((m) => m.id === selectedId) || messages.find((m) => m.id === selectedId);
+
+      if (!msg || msg.folder !== currentFolder) {
+        pane.innerHTML = `<div class="mail-empty-read">Selecciona un mensaje para leerlo o haz clic en "Correo nuevo".</div>`;
+        return;
+      }
+
+      pane.innerHTML = `
+        <div class="mail-toolbar-mini">
+          <button id="btn-mark-unread" class="m-btn" type="button">Marcar no leído</button>
+          <button id="btn-archive-msg" class="m-btn" type="button">Archivar</button>
+          <button id="btn-delete-msg" class="m-btn" type="button">Eliminar</button>
+        </div>
+        <div class="mail-read-subject">${escapeHtml(msg.subject || "(Sin asunto)")}</div>
+        <div class="mail-read-meta">
+          <div>
+            <strong>${escapeHtml(msg.sender)}</strong>
+            ${msg.email ? `<span style="color:#64748b;"> &lt;${escapeHtml(msg.email)}&gt;</span>` : ""}
+          </div>
+          <span>${escapeHtml(msg.time)}</span>
+        </div>
+        <div class="mail-read-body">${escapeHtml(msg.body || "")}</div>
+      `;
+
+      document.getElementById("btn-mark-unread").addEventListener("click", () => {
+        msg.unread = true;
+        saveMessages();
+        renderAll();
+      });
+
+      document.getElementById("btn-archive-msg").addEventListener("click", () => {
+        msg.folder = "archive";
+        saveMessages();
+        renderAll();
+      });
+
+      document.getElementById("btn-delete-msg").addEventListener("click", () => {
+        if (msg.folder === "deleted") {
+          messages = messages.filter((item) => item.id !== msg.id);
+        } else {
+          msg.folder = "deleted";
+        }
+        saveMessages();
+        renderAll();
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderAll() {
+      updateUnreadBadge();
+      renderList();
+      renderReadingPane();
+    }
+
+    document.querySelectorAll(".folder-btn[data-folder]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentFolder = btn.dataset.folder;
+        composingMode = false;
+        document.querySelectorAll(".folder-btn[data-folder]").forEach((b) => {
+          b.classList.toggle("active", b === btn);
+        });
+        renderAll();
+      });
+    });
+
+    document.getElementById("btn-new-mail").addEventListener("click", () => {
+      composingMode = true;
+      renderList();
+      renderReadingPane();
+    });
+
+    document.getElementById("mail-search").addEventListener("input", (e) => {
+      searchText = e.target.value;
+      renderList();
+      renderReadingPane();
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>

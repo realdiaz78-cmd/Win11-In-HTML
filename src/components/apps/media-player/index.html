@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Player</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #14171f;
+      color: #f8fafc;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .mp-shell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Zona principal del reproductor */
+    .mp-stage-area {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: radial-gradient(circle at 25% 15%, rgba(0, 103, 192, 0.24), transparent 55%), #14171f;
+    }
+
+    .mp-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .mp-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .mp-add-btn {
+      padding: 5px 11px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .mp-add-btn:hover {
+      background: #334155;
+      border-color: #64748b;
+    }
+
+    .mp-viewport {
+      flex: 1;
+      min-height: 0;
+      margin: 12px 0;
+      border-radius: 10px;
+      background: #0b0d12;
+      border: 1px solid #262c3a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #mp-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+      background: #000000;
+    }
+
+    .mp-audio-art {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .mp-disc {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: conic-gradient(from 45deg, #0067c0, #38bdf8, #1e293b, #0067c0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+      transition: transform 0.2s ease;
+    }
+
+    .mp-disc.playing {
+      animation: spinDisc 7s linear infinite;
+    }
+
+    .mp-disc-center {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #0b0d12;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+    }
+
+    @keyframes spinDisc {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .mp-track-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .mp-track-artist {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* Controles inferiores */
+    .mp-controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mp-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    #mp-seek {
+      flex: 1;
+      cursor: pointer;
+      accent-color: #38bdf8;
+    }
+
+    .mp-buttons-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .mp-transport {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mp-ctrl-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.1s ease;
+    }
+
+    .mp-ctrl-btn:hover {
+      background: #334155;
+    }
+
+    .mp-ctrl-btn.play-main {
+      width: 40px;
+      height: 40px;
+      background: #0067c0;
+      border-color: #0067c0;
+      font-size: 14px;
+    }
+
+    .mp-ctrl-btn.play-main:hover {
+      background: #0078d4;
+    }
+
+    .mp-vol-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    #mp-volume {
+      width: 78px;
+      cursor: pointer;
+      accent-color: #38bdf8;
+    }
+
+    /* Lista de reproducción lateral */
+    .mp-playlist-pane {
+      width: 215px;
+      min-width: 170px;
+      background: #1a1f2b;
+      border-left: 1px solid #293042;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .mp-playlist-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #e2e8f0;
+      padding: 0 4px;
+    }
+
+    .mp-queue-item {
+      padding: 8px 9px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #cbd5e1;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .mp-queue-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .mp-queue-item.active {
+      background: rgba(0, 103, 192, 0.24);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #ffffff;
+    }
+
+    .mp-q-name {
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mp-q-sub {
+      font-size: 10.5px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="mp-shell">
+    <section class="mp-stage-area">
+      <header class="mp-topbar">
+        <span class="mp-title">Reproductor multimedia</span>
+        <div>
+          <input id="mp-file-input" type="file" accept="audio/*,video/*" multiple hidden>
+          <button id="mp-add-btn" class="mp-add-btn" type="button">+ Abrir archivo</button>
+        </div>
+      </header>
+
+      <div class="mp-viewport">
+        <video id="mp-video" playsinline></video>
+        <div id="mp-audio-art" class="mp-audio-art">
+          <div id="mp-disc" class="mp-disc">
+            <div class="mp-disc-center"></div>
+          </div>
+          <div id="mp-track-name" class="mp-track-name">Pista de prueba 1</div>
+          <div id="mp-track-artist" class="mp-track-artist">Sintetizador Win11 · Audio demo</div>
+        </div>
+      </div>
+
+      <div class="mp-controls-panel">
+        <div class="mp-progress-row">
+          <span id="mp-cur-time">0:00</span>
+          <input id="mp-seek" type="range" min="0" max="100" value="0" step="0.1">
+          <span id="mp-dur-time">0:00</span>
+        </div>
+
+        <div class="mp-buttons-row">
+          <div class="mp-transport">
+            <button id="mp-prev" class="mp-ctrl-btn" type="button" title="Anterior">⏮</button>
+            <button id="mp-play" class="mp-ctrl-btn play-main" type="button" title="Reproducir / Pausar">▶</button>
+            <button id="mp-next" class="mp-ctrl-btn" type="button" title="Siguiente">⏭</button>
+          </div>
+
+          <div class="mp-vol-wrap">
+            <span>🔊</span>
+            <input id="mp-volume" type="range" min="0" max="1" step="0.02" value="0.7">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="mp-playlist-pane">
+      <div class="mp-playlist-title">Cola de reproducción</div>
+      <div id="mp-queue" style="display: flex; flex-direction: column; gap: 4px;"></div>
+    </aside>
+  </div>
+
+  <script>
+    const videoEl = document.getElementById("mp-video");
+    const audioArtEl = document.getElementById("mp-audio-art");
+    const discEl = document.getElementById("mp-disc");
+    const trackNameEl = document.getElementById("mp-track-name");
+    const trackArtistEl = document.getElementById("mp-track-artist");
+    const curTimeEl = document.getElementById("mp-cur-time");
+    const durTimeEl = document.getElementById("mp-dur-time");
+    const seekEl = document.getElementById("mp-seek");
+    const playBtn = document.getElementById("mp-play");
+    const prevBtn = document.getElementById("mp-prev");
+    const nextBtn = document.getElementById("mp-next");
+    const volEl = document.getElementById("mp-volume");
+    const queueEl = document.getElementById("mp-queue");
+    const fileInput = document.getElementById("mp-file-input");
+    const addBtn = document.getElementById("mp-add-btn");
+
+    const playlist = [
+      { id: "demo-1", title: "Pista de prueba 1", artist: "Sintetizador Win11 · Demo", type: "synth", notes: [261.63, 329.63, 392.0, 523.25] },
+      { id: "demo-2", title: "Pista de prueba 2", artist: "Arpegio suave · Demo", type: "synth", notes: [220.0, 277.18, 329.63, 440.0] }
+    ];
+
+    let currentIdx = 0;
+    let isPlaying = false;
+    let synthTimer = null;
+    let synthElapsed = 0;
+    const SYNTH_DURATION = 16;
+    let audioCtx = null;
+
+    function formatTime(sec) {
+      if (!Number.isFinite(sec) || sec < 0) return "0:00";
+      const total = Math.floor(sec);
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function playTone(freq) {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+
+        const v = Number(volEl.value) * 0.12;
+        gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, v), audioCtx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.36);
+      } catch {}
+    }
+
+    function stopSynthLoop() {
+      if (synthTimer) {
+        clearInterval(synthTimer);
+        synthTimer = null;
+      }
+    }
+
+    function startSynthLoop(track) {
+      stopSynthLoop();
+      let step = 0;
+      synthTimer = setInterval(() => {
+        if (!isPlaying) return;
+        synthElapsed += 0.25;
+        if (synthElapsed >= SYNTH_DURATION) {
+          synthElapsed = 0;
+        }
+        if (Math.floor(synthElapsed * 4) % 2 === 0) {
+          const note = track.notes[step % track.notes.length];
+          playTone(note);
+          step += 1;
+        }
+        seekEl.max = String(SYNTH_DURATION);
+        seekEl.value = String(synthElapsed);
+        curTimeEl.textContent = formatTime(synthElapsed);
+        durTimeEl.textContent = formatTime(SYNTH_DURATION);
+      }, 250);
+    }
+
+    function renderQueue() {
+      queueEl.innerHTML = "";
+      playlist.forEach((item, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `mp-queue-item ${idx === currentIdx ? "active" : ""}`;
+        btn.type = "button";
+        btn.innerHTML = `
+          <span class="mp-q-name">${item.title}</span>
+          <span class="mp-q-sub">${item.artist}</span>
+        `;
+        btn.addEventListener("click", () => {
+          loadTrack(idx, true);
+        });
+        queueEl.appendChild(btn);
+      });
+    }
+
+    function pauseMedia() {
+      isPlaying = false;
+      stopSynthLoop();
+      if (!videoEl.paused) {
+        videoEl.pause();
+      }
+      playBtn.textContent = "▶";
+      discEl.classList.remove("playing");
+    }
+
+    function playMedia() {
+      const track = playlist[currentIdx];
+      if (!track) return;
+      isPlaying = true;
+      playBtn.textContent = "⏸";
+
+      if (track.type === "synth") {
+        discEl.classList.add("playing");
+        startSynthLoop(track);
+      } else {
+        discEl.classList.remove("playing");
+        videoEl.volume = Number(volEl.value);
+        videoEl.play().catch(() => {});
+      }
+    }
+
+    function loadTrack(idx, autoPlay = false) {
+      if (idx < 0) idx = playlist.length - 1;
+      if (idx >= playlist.length) idx = 0;
+      currentIdx = idx;
+      const track = playlist[currentIdx];
+      pauseMedia();
+
+      trackNameEl.textContent = track.title;
+      trackArtistEl.textContent = track.artist;
+      synthElapsed = 0;
+      seekEl.value = "0";
+      curTimeEl.textContent = "0:00";
+
+      if (track.type === "synth") {
+        videoEl.style.display = "none";
+        videoEl.removeAttribute("src");
+        audioArtEl.style.display = "flex";
+        seekEl.max = String(SYNTH_DURATION);
+        durTimeEl.textContent = formatTime(SYNTH_DURATION);
+      } else {
+        audioArtEl.style.display = "none";
+        videoEl.style.display = "block";
+        videoEl.src = track.src;
+        videoEl.load();
+      }
+
+      renderQueue();
+      if (autoPlay) {
+        playMedia();
+      }
+    }
+
+    playBtn.addEventListener("click", () => {
+      if (isPlaying) pauseMedia();
+      else playMedia();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      loadTrack(currentIdx - 1, isPlaying);
+    });
+
+    nextBtn.addEventListener("click", () => {
+      loadTrack(currentIdx + 1, isPlaying);
+    });
+
+    seekEl.addEventListener("input", () => {
+      const track = playlist[currentIdx];
+      if (!track) return;
+      const val = Number(seekEl.value);
+      if (track.type === "synth") {
+        synthElapsed = val;
+        curTimeEl.textContent = formatTime(synthElapsed);
+      } else if (Number.isFinite(videoEl.duration)) {
+        videoEl.currentTime = val;
+      }
+    });
+
+    volEl.addEventListener("input", () => {
+      videoEl.volume = Number(volEl.value);
+    });
+
+    videoEl.addEventListener("loadedmetadata", () => {
+      seekEl.max = String(videoEl.duration || 0);
+      durTimeEl.textContent = formatTime(videoEl.duration);
+    });
+
+    videoEl.addEventListener("timeupdate", () => {
+      if (playlist[currentIdx]?.type === "file") {
+        seekEl.value = String(videoEl.currentTime || 0);
+        curTimeEl.textContent = formatTime(videoEl.currentTime);
+      }
+    });
+
+    videoEl.addEventListener("ended", () => {
+      loadTrack(currentIdx + 1, true);
+    });
+
+    addBtn.addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      let firstNewIdx = playlist.length;
+      files.forEach((file) => {
+        playlist.push({
+          id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          title: file.name,
+          artist: file.type.startsWith("video/") ? "Video local" : "Audio local",
+          type: "file",
+          src: URL.createObjectURL(file)
+        });
+      });
+
+      fileInput.value = "";
+      loadTrack(firstNewIdx, true);
+    });
+
+    loadTrack(0, false);
+  </script>
+</body>
+</html>

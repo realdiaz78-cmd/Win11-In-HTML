@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explorador de archivos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .explorer-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Barra superior de comandos */
+    .command-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .cmd-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .cmd-btn:hover:not(:disabled) {
+      background: #ffffff;
+      border-color: #cbd5e1;
+    }
+
+    .cmd-btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .cmd-divider {
+      width: 1px;
+      height: 18px;
+      background: #cbd5e1;
+      margin: 0 4px;
+    }
+
+    /* Barra de dirección */
+    .address-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .nav-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .path-box {
+      flex: 1;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      font-size: 12px;
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Cuerpo: Sidebar + Contenido */
+    .explorer-main {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 185px;
+      min-width: 145px;
+      background: #f1f5f9;
+      border-right: 1px solid #e2e8f0;
+      padding: 10px 6px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #1e293b;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.14s ease;
+    }
+
+    .sidebar-item:hover {
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .sidebar-item.active {
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    .sidebar-item img {
+      width: 16px;
+      height: 16px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .sidebar-sep {
+      height: 1px;
+      background: #cbd5e1;
+      margin: 6px 4px;
+    }
+
+    /* Área de archivos y carpetas */
+    .content-area {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      background: #ffffff;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 10px;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      gap: 10px;
+    }
+
+    .file-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 6px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+      text-align: center;
+    }
+
+    .file-card:hover {
+      background: #f1f5f9;
+    }
+
+    .file-card.selected {
+      background: #dbeafe;
+      border-color: #93c5fd;
+    }
+
+    .file-card img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .file-name {
+      font-size: 12px;
+      color: #0f172a;
+      word-break: break-word;
+      line-height: 1.2;
+    }
+
+    .file-meta {
+      font-size: 10px;
+      color: #64748b;
+    }
+
+    .empty-state {
+      padding: 36px 16px;
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    /* Barra de estado inferior */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 12px;
+      background: #f1f5f9;
+      border-top: 1px solid #e2e8f0;
+      font-size: 11px;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+  <div class="explorer-shell">
+    <!-- Comandos: Crear carpeta, Renombrar, Borrar -->
+    <div class="command-bar">
+      <button id="btn-new-folder" class="cmd-btn" type="button">
+        <span>📁</span>
+        <span>Nueva carpeta</span>
+      </button>
+      <div class="cmd-divider"></div>
+      <button id="btn-rename" class="cmd-btn" type="button" disabled>
+        <span>✏️</span>
+        <span>Renombrar</span>
+      </button>
+      <button id="btn-delete" class="cmd-btn" type="button" disabled>
+        <span>🗑️</span>
+        <span>Borrar</span>
+      </button>
+    </div>
+
+    <!-- Navegación y ruta -->
+    <div class="address-bar">
+      <button id="btn-back" class="nav-btn" type="button" title="Atrás" disabled>←</button>
+      <div id="path-box" class="path-box">Inicio</div>
+    </div>
+
+    <!-- Cuerpo -->
+    <div class="explorer-main">
+      <aside class="sidebar" id="sidebar"></aside>
+      <main class="content-area" id="content-area"></main>
+    </div>
+
+    <!-- Pie de estado -->
+    <div class="status-bar">
+      <span id="status-count">0 elementos</span>
+      <span id="status-selection">Selecciona una carpeta o archivo</span>
+    </div>
+  </div>
+
+  <script>
+    const IMG_BASE = "../../../../public/img/apps/Explorer";
+
+    const SIDEBAR_LINKS = [
+      { id: "home", label: "Inicio", icon: `${IMG_BASE}/hone-page.png`, path: ["Inicio"] },
+      { id: "desktop", label: "Escritorio", icon: `${IMG_BASE}/desk-sm.png`, path: ["Este equipo", "Escritorio"] },
+      { id: "documents", label: "Documentos", icon: `${IMG_BASE}/documents-sm.png`, path: ["Este equipo", "Documentos"] },
+      { id: "downloads", label: "Descargas", icon: `${IMG_BASE}/down-sm.png`, path: ["Este equipo", "Descargas"] },
+      { id: "music", label: "Música", icon: `${IMG_BASE}/music-sm.png`, path: ["Este equipo", "Música"] },
+      { id: "videos", label: "Videos", icon: `${IMG_BASE}/vid-sm.png`, path: ["Este equipo", "Videos"] },
+      { id: "pics", label: "Imágenes", icon: `${IMG_BASE}/pics-sm.png`, path: ["Este equipo", "Imágenes"] },
+      { id: "onedrive", label: "OneDrive", icon: `${IMG_BASE}/onedrive-sm.png`, path: ["Este equipo", "OneDrive"] },
+      { sep: true },
+      { id: "thispc", label: "Este equipo", icon: `${IMG_BASE}/thispc-sm.png`, path: ["Este equipo"] },
+      { id: "disk", label: "Disco local (C:)", icon: `${IMG_BASE}/disk-sm.png`, path: ["Este equipo", "Disco local (C:)"] },
+      { id: "user", label: "Usuario", icon: `${IMG_BASE}/user-sm.png`, path: ["Este equipo", "Usuario"] },
+      { id: "network", label: "Red", icon: `${IMG_BASE}/red.png`, path: ["Red"] }
+    ];
+
+    const fsTree = {
+      name: "Inicio",
+      type: "folder",
+      icon: `${IMG_BASE}/hone-page.png`,
+      children: [
+        {
+          name: "Este equipo",
+          type: "folder",
+          icon: `${IMG_BASE}/thispc.png`,
+          children: [
+            {
+              name: "Escritorio",
+              type: "folder",
+              icon: `${IMG_BASE}/desk.png`,
+              children: [
+                { name: "bienvenida.txt", type: "file", size: "2 KB" }
+              ]
+            },
+            {
+              name: "Documentos",
+              type: "folder",
+              icon: `${IMG_BASE}/documents.png`,
+              children: [
+                { name: "notas-proyecto.txt", type: "file", size: "14 KB" },
+                { name: "ideas-win11.md", type: "file", size: "8 KB" }
+              ]
+            },
+            {
+              name: "Descargas",
+              type: "folder",
+              icon: `${IMG_BASE}/down.png`,
+              children: [
+                { name: "wallpaper-pack.zip", type: "file", size: "24 MB" }
+              ]
+            },
+            {
+              name: "Música",
+              type: "folder",
+              icon: `${IMG_BASE}/music.png`,
+              children: [
+                { name: "playlist-chill.mp3", type: "file", size: "4.2 MB" }
+              ]
+            },
+            {
+              name: "Videos",
+              type: "folder",
+              icon: `${IMG_BASE}/vid.png`,
+              children: [
+                { name: "demo-escritorio.mp4", type: "file", size: "18 MB" }
+              ]
+            },
+            {
+              name: "Imágenes",
+              type: "folder",
+              icon: `${IMG_BASE}/pics.png`,
+              children: [
+                { name: "captura.png", type: "file", size: "620 KB" }
+              ]
+            },
+            {
+              name: "OneDrive",
+              type: "folder",
+              icon: `${IMG_BASE}/onedrive.png`,
+              children: []
+            },
+            {
+              name: "Usuario",
+              type: "folder",
+              icon: `${IMG_BASE}/user.png`,
+              children: []
+            },
+            {
+              name: "Disco local (C:)",
+              type: "folder",
+              icon: `${IMG_BASE}/disk-sm.png`,
+              children: [
+                { name: "system-log.txt", type: "file", size: "64 KB" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "Red",
+          type: "folder",
+          icon: `${IMG_BASE}/red.png`,
+          children: []
+        }
+      ]
+    };
+
+    let currentPath = ["Inicio"];
+    let historyStack = [["Inicio"]];
+    let selectedName = null;
+
+    const sidebarEl = document.getElementById("sidebar");
+    const contentAreaEl = document.getElementById("content-area");
+    const pathBoxEl = document.getElementById("path-box");
+    const btnBackEl = document.getElementById("btn-back");
+    const btnNewFolderEl = document.getElementById("btn-new-folder");
+    const btnRenameEl = document.getElementById("btn-rename");
+    const btnDeleteEl = document.getElementById("btn-delete");
+    const statusCountEl = document.getElementById("status-count");
+    const statusSelectionEl = document.getElementById("status-selection");
+
+    function getFolderByPath(pathArr) {
+      let node = fsTree;
+      for (let i = 1; i < pathArr.length; i++) {
+        const next = (node.children || []).find(
+          (item) => item.type === "folder" && item.name === pathArr[i]
+        );
+        if (!next) return fsTree;
+        node = next;
+      }
+      return node;
+    }
+
+    function getItemIcon(item) {
+      if (item.type === "folder") {
+        return item.icon || `${IMG_BASE}/folder.png`;
+      }
+      return `${IMG_BASE}/folder-sm.png`;
+    }
+
+    function navigateTo(pathArr, pushHistory = true) {
+      currentPath = [...pathArr];
+      selectedName = null;
+      if (pushHistory) {
+        historyStack.push([...pathArr]);
+      }
+      render();
+    }
+
+    function goBack() {
+      if (historyStack.length <= 1) return;
+      historyStack.pop();
+      const prev = historyStack[historyStack.length - 1];
+      navigateTo(prev, false);
+    }
+
+    function createFolder() {
+      const folderNode = getFolderByPath(currentPath);
+      folderNode.children = folderNode.children || [];
+
+      let baseName = "Nueva carpeta";
+      let candidate = baseName;
+      let counter = 2;
+      const existingNames = new Set(folderNode.children.map((c) => c.name.toLowerCase()));
+      while (existingNames.has(candidate.toLowerCase())) {
+        candidate = `${baseName} (${counter})`;
+        counter += 1;
+      }
+
+      const customName = prompt("Nombre de la nueva carpeta:", candidate);
+      if (customName === null) return;
+      const cleanName = customName.trim();
+      if (!cleanName) return;
+
+      if (existingNames.has(cleanName.toLowerCase())) {
+        alert("Ya existe un elemento con ese nombre aquí.");
+        return;
+      }
+
+      folderNode.children.unshift({
+        name: cleanName,
+        type: "folder",
+        icon: `${IMG_BASE}/folder.png`,
+        children: []
+      });
+
+      selectedName = cleanName;
+      render();
+    }
+
+    function renameSelected() {
+      if (!selectedName) return;
+      const folderNode = getFolderByPath(currentPath);
+      const target = (folderNode.children || []).find((c) => c.name === selectedName);
+      if (!target) return;
+
+      const updated = prompt(`Renombrar "${target.name}" a:`, target.name);
+      if (updated === null) return;
+      const cleanName = updated.trim();
+      if (!cleanName || cleanName === target.name) return;
+
+      const duplicate = (folderNode.children || []).some(
+        (c) => c !== target && c.name.toLowerCase() === cleanName.toLowerCase()
+      );
+      if (duplicate) {
+        alert("Ya existe otro elemento con ese nombre aquí.");
+        return;
+      }
+
+      target.name = cleanName;
+      selectedName = cleanName;
+      render();
+    }
+
+    function deleteSelected() {
+      if (!selectedName) return;
+      const folderNode = getFolderByPath(currentPath);
+      const idx = (folderNode.children || []).findIndex((c) => c.name === selectedName);
+      if (idx === -1) return;
+
+      const item = folderNode.children[idx];
+      const ok = confirm(`¿Borrar "${item.name}"?`);
+      if (!ok) return;
+
+      folderNode.children.splice(idx, 1);
+      selectedName = null;
+      render();
+    }
+
+    function renderSidebar() {
+      sidebarEl.innerHTML = "";
+      const activeKey = currentPath.join(" > ");
+
+      SIDEBAR_LINKS.forEach((entry) => {
+        if (entry.sep) {
+          const sep = document.createElement("div");
+          sep.className = "sidebar-sep";
+          sidebarEl.appendChild(sep);
+          return;
+        }
+
+        const btn = document.createElement("button");
+        btn.className = "sidebar-item";
+        btn.type = "button";
+        if (entry.path.join(" > ") === activeKey) {
+          btn.classList.add("active");
+        }
+
+        const img = document.createElement("img");
+        img.src = entry.icon;
+        img.alt = entry.label;
+        img.onerror = () => {
+          img.src = `${IMG_BASE}/folder-sm.png`;
+        };
+
+        const span = document.createElement("span");
+        span.textContent = entry.label;
+
+        btn.appendChild(img);
+        btn.appendChild(span);
+        btn.addEventListener("click", () => navigateTo(entry.path));
+        sidebarEl.appendChild(btn);
+      });
+    }
+
+    function renderContent() {
+      const folderNode = getFolderByPath(currentPath);
+      const items = folderNode.children || [];
+
+      pathBoxEl.textContent = currentPath.join(" > ");
+      btnBackEl.disabled = historyStack.length <= 1;
+      statusCountEl.textContent = `${items.length} ${items.length === 1 ? "elemento" : "elementos"}`;
+
+      const hasSelection = Boolean(selectedName);
+      btnRenameEl.disabled = !hasSelection;
+      btnDeleteEl.disabled = !hasSelection;
+      statusSelectionEl.textContent = hasSelection
+        ? `Seleccionado: ${selectedName}`
+        : "Selecciona una carpeta o archivo";
+
+      contentAreaEl.innerHTML = "";
+
+      if (items.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "Esta carpeta está vacía. Usa «Nueva carpeta» para agregar una.";
+        contentAreaEl.appendChild(empty);
+        return;
+      }
+
+      const label = document.createElement("div");
+      label.className = "section-label";
+      label.textContent = folderNode.name;
+      contentAreaEl.appendChild(label);
+
+      const grid = document.createElement("div");
+      grid.className = "items-grid";
+
+      items.forEach((item) => {
+        const card = document.createElement("button");
+        card.className = "file-card";
+        card.type = "button";
+        if (item.name === selectedName) {
+          card.classList.add("selected");
+        }
+
+        const img = document.createElement("img");
+        img.src = getItemIcon(item);
+        img.alt = item.name;
+        img.onerror = () => {
+          img.src = `${IMG_BASE}/folder.png`;
+        };
+
+        const nameEl = document.createElement("span");
+        nameEl.className = "file-name";
+        nameEl.textContent = item.name;
+
+        const metaEl = document.createElement("span");
+        metaEl.className = "file-meta";
+        metaEl.textContent = item.type === "folder" ? "Carpeta" : (item.size || "Archivo");
+
+        card.appendChild(img);
+        card.appendChild(nameEl);
+        card.appendChild(metaEl);
+
+        card.addEventListener("click", (e) => {
+          e.stopPropagation();
+          selectedName = item.name;
+          render();
+        });
+
+        card.addEventListener("dblclick", (e) => {
+          e.stopPropagation();
+          if (item.type === "folder") {
+            navigateTo([...currentPath, item.name]);
+          } else {
+            selectedName = item.name;
+            renameSelected();
+          }
+        });
+
+        grid.appendChild(card);
+      });
+
+      contentAreaEl.appendChild(grid);
+    }
+
+    function render() {
+      renderSidebar();
+      renderContent();
+    }
+
+    contentAreaEl.addEventListener("click", () => {
+      if (selectedName) {
+        selectedName = null;
+        render();
+      }
+    });
+
+    btnBackEl.addEventListener("click", goBack);
+    btnNewFolderEl.addEventListener("click", createFolder);
+    btnRenameEl.addEventListener("click", renameSelected);
+    btnDeleteEl.addEventListener("click", deleteSelected);
+
+    render();
+  </script>
+</body>
+</html>

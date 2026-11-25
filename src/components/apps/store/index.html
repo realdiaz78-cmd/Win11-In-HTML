@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microsoft Store</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .ms-store {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Barra lateral estrecha tipo Windows 11 */
+    .ms-rail {
+      width: 50px;
+      min-width: 50px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+      gap: 4px;
+    }
+
+    .ms-rail-btn {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.14s ease, color 0.14s ease;
+    }
+
+    .ms-rail-btn svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .ms-rail-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .ms-rail-btn.active {
+      background: #f1f5f9;
+      color: #0067c0;
+    }
+
+    .ms-rail-btn.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      border-radius: 999px;
+      background: #0067c0;
+    }
+
+    .ms-rail-spacer {
+      flex: 1;
+    }
+
+    /* Área principal */
+    .ms-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+      overflow-y: auto;
+    }
+
+    .ms-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 16px 4px;
+    }
+
+    .ms-page-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .ms-search-box {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 4px 12px;
+      width: min(250px, 50%);
+      color: #64748b;
+    }
+
+    .ms-search-box svg {
+      width: 13px;
+      height: 13px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      flex-shrink: 0;
+    }
+
+    .ms-search-box input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 12px;
+      color: #0f172a;
+      font-family: inherit;
+      user-select: text;
+    }
+
+    /* Banner Hero panorámico con arte limpio */
+    .ms-hero {
+      position: relative;
+      margin: 4px 16px 12px;
+      min-height: 152px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: linear-gradient(115deg, #0b192c 0%, #0f3d68 48%, #0284c7 100%);
+      color: #ffffff;
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+    }
+
+    .ms-hero-art {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 230px;
+      height: 120px;
+      pointer-events: none;
+      opacity: 0.92;
+    }
+
+    .ms-hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 430px;
+    }
+
+    .ms-hero-kicker {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    .ms-hero-title {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 4px;
+    }
+
+    .ms-hero-sub {
+      font-size: 11.5px;
+      color: #dbeafe;
+      line-height: 1.35;
+    }
+
+    .ms-hero-actions {
+      position: relative;
+      z-index: 1;
+    }
+
+    .ms-hero-btn {
+      padding: 7px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      transition: background 0.14s ease, transform 0.12s ease;
+    }
+
+    .ms-hero-btn:hover {
+      background: #f1f5f9;
+      transform: translateY(-1px);
+    }
+
+    /* Fila inferior de tarjetas */
+    .ms-shelf-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px 6px;
+    }
+
+    .ms-shelf-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .ms-shelf-meta {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .ms-tiles-row {
+      display: flex;
+      gap: 10px;
+      padding: 0 16px 14px;
+      overflow-x: auto;
+      align-items: stretch;
+    }
+
+    .ms-tile {
+      flex: 0 0 146px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .ms-tile:hover {
+      transform: translateY(-2px);
+      border-color: #93c5fd;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    }
+
+    .ms-tile-visual {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ms-tile-visual svg {
+      width: 34px;
+      height: 34px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ms-tile-body {
+      padding: 7px 9px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .ms-tile-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ms-tile-sub {
+      font-size: 10px;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ms-tile-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+      gap: 4px;
+    }
+
+    .ms-tile-price {
+      font-size: 10px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .ms-tile-btn {
+      padding: 3px 8px;
+      border-radius: 5px;
+      border: 1px solid #0067c0;
+      background: #0067c0;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .ms-tile-btn.installed {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+
+    .ms-empty {
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+    }
+
+    /* Modal de ficha */
+    .ms-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 40;
+    }
+
+    .ms-modal-backdrop.open {
+      display: flex;
+    }
+
+    .ms-modal {
+      width: min(400px, 100%);
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.24);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ms-modal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .ms-modal-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .ms-modal-cat {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .ms-modal-desc {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #334155;
+      user-select: text;
+    }
+
+    .ms-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .ms-btn-sec {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="ms-store">
+    <nav class="ms-rail" aria-label="Secciones de Store">
+      <button class="ms-rail-btn active" type="button" data-section="home" title="Home">
+        <svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>
+      </button>
+      <button class="ms-rail-btn" type="button" data-section="apps" title="Apps">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </button>
+      <button class="ms-rail-btn" type="button" data-section="games" title="Games">
+        <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="5"/><path d="M8 10v4M6 12h4M15.5 11h.01M18 13h.01"/></svg>
+      </button>
+      <button class="ms-rail-btn" type="button" data-section="categories" title="Categories">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </button>
+      <div class="ms-rail-spacer"></div>
+      <button class="ms-rail-btn" type="button" data-section="library" title="Library">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </button>
+    </nav>
+
+    <main class="ms-main">
+      <header class="ms-topbar">
+        <span id="ms-page-title" class="ms-page-title">Home</span>
+        <div class="ms-search-box">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="ms-search" type="text" placeholder="Search apps, games, movies...">
+        </div>
+      </header>
+
+      <section class="ms-hero" id="ms-hero">
+        <div class="ms-hero-content">
+          <span class="ms-hero-kicker">Featured</span>
+          <h1 class="ms-hero-title">Win11 Desktop Suite</h1>
+          <p class="ms-hero-sub">Essential tools, creative canvases, and classic mini-games ready for your browser desktop.</p>
+        </div>
+
+        <svg class="ms-hero-art" viewBox="0 0 240 120" fill="none">
+          <rect x="28" y="14" width="110" height="72" rx="8" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.32)"/>
+          <rect x="42" y="28" width="44" height="10" rx="3" fill="#7dd3fc"/>
+          <rect x="42" y="46" width="82" height="6" rx="3" fill="rgba(255,255,255,0.45)"/>
+          <rect x="42" y="58" width="62" height="6" rx="3" fill="rgba(255,255,255,0.3)"/>
+          <circle cx="176" cy="54" r="34" fill="rgba(56,189,248,0.28)" stroke="rgba(255,255,255,0.35)"/>
+          <path d="M166 54l7 7 15-15" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+        <div class="ms-hero-actions">
+          <button id="ms-hero-action" class="ms-hero-btn" type="button">Get started</button>
+        </div>
+      </section>
+
+      <div class="ms-shelf-header">
+        <span id="ms-shelf-title" class="ms-shelf-title">Top picks</span>
+        <span id="ms-shelf-count" class="ms-shelf-meta">0 items</span>
+      </div>
+
+      <div id="ms-tiles-row" class="ms-tiles-row"></div>
+    </main>
+  </div>
+
+  <div id="ms-modal-backdrop" class="ms-modal-backdrop" aria-hidden="true">
+    <div class="ms-modal">
+      <div class="ms-modal-top">
+        <div>
+          <div id="ms-modal-title" class="ms-modal-title">Título</div>
+          <div id="ms-modal-cat" class="ms-modal-cat">Categoría</div>
+        </div>
+        <button id="ms-modal-close" class="ms-btn-sec" type="button">✕</button>
+      </div>
+      <p id="ms-modal-desc" class="ms-modal-desc"></p>
+      <div class="ms-modal-actions">
+        <button id="ms-modal-install" class="ms-tile-btn" type="button">Get</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORE_KEY = "win11_store_win11_style_v2";
+
+    const ART_SVG = {
+      paint: `<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/><path d="M9 17c-2.5 0-4 1.2-4 3 0 .6.4 1 1 1h12"/></svg>`,
+      calculator: `<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="8" y1="6.5" x2="16" y2="6.5"/><circle cx="8.5" cy="11.5" r="0.8" fill="#ffffff"/><circle cx="12" cy="11.5" r="0.8" fill="#ffffff"/><circle cx="15.5" cy="11.5" r="0.8" fill="#ffffff"/><circle cx="8.5" cy="15.5" r="0.8" fill="#ffffff"/><circle cx="12" cy="15.5" r="0.8" fill="#ffffff"/><circle cx="15.5" cy="15.5" r="0.8" fill="#ffffff"/></svg>`,
+      notepad: `<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>`,
+      edge: `<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 12c2.2-3.5 6.8-5 11.4-3.4 2.4.8 4.1 2.5 4.4 4.4-2.2 2.4-6.4 3.2-10.8 1.6-2.2-.8-3.8-2-5-2.6z"/></svg>`,
+      gamepass: `<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="5"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="6" y1="12" x2="10" y2="12"/><circle cx="15.5" cy="11" r="1" fill="#ffffff"/><circle cx="18" cy="13" r="1" fill="#ffffff"/></svg>`,
+      security: `<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+      social: `<svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`
+    };
+
+    const ITEMS = [
+      {
+        id: "paint",
+        appId: "paint",
+        name: "Paint",
+        sub: "Creative Studio",
+        kind: "apps",
+        price: "Free",
+        bg: "linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 100%)",
+        desc: "Sketch with brush and eraser, adjust stroke size and color, clear canvas, and save PNG images."
+      },
+      {
+        id: "calculator",
+        appId: "calculator",
+        name: "Calculator",
+        sub: "Essential Apps",
+        kind: "apps",
+        price: "Free",
+        bg: "linear-gradient(135deg, #0f766e 0%, #10b981 100%)",
+        desc: "Standard calculator with keyboard support, percentages, square root, and chained arithmetic."
+      },
+      {
+        id: "notepad",
+        appId: "notepad",
+        name: "Notepad",
+        sub: "Utility Apps",
+        kind: "apps",
+        price: "Free",
+        bg: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)",
+        desc: "Fast text editor with auto-save to localStorage, font scaling, and TXT export."
+      },
+      {
+        id: "edge",
+        appId: "edge",
+        name: "Microsoft Edge",
+        sub: "Web Browser",
+        kind: "apps",
+        price: "Free",
+        bg: "linear-gradient(135deg, #0369a1 0%, #22c55e 100%)",
+        desc: "Browse websites inside a nested frame with back, forward, reload, and quick bookmarks."
+      },
+      {
+        id: "gamepass",
+        appId: null,
+        name: "Xbox Game Pass",
+        sub: "Games Library",
+        kind: "games",
+        price: "Free",
+        bg: "linear-gradient(135deg, #166534 0%, #22c55e 100%)",
+        desc: "Browse curated game titles and add favorites to your personal library."
+      },
+      {
+        id: "security",
+        appId: null,
+        name: "Windows Security",
+        sub: "Security",
+        kind: "apps",
+        price: "Free",
+        bg: "linear-gradient(135deg, #b91c1c 0%, #ea580c 100%)",
+        desc: "System safety overview and privacy status checks for your web workspace."
+      },
+      {
+        id: "social",
+        appId: null,
+        name: "Social Hub",
+        sub: "Social Media",
+        kind: "apps",
+        price: "Free",
+        bg: "linear-gradient(135deg, #4338ca 0%, #db2777 100%)",
+        desc: "Quick shortcuts and bookmarks for your favorite social and chat platforms."
+      }
+    ];
+
+    let activeSection = "home";
+    let query = "";
+    let modalItem = null;
+
+    function loadInstalled() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return new Set(["paint", "calculator", "notepad"]);
+        const arr = JSON.parse(raw);
+        return new Set(Array.isArray(arr) ? arr : ["paint", "calculator", "notepad"]);
+      } catch {
+        return new Set(["paint", "calculator", "notepad"]);
+      }
+    }
+
+    const installed = loadInstalled();
+
+    function saveInstalled() {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(Array.from(installed)));
+      } catch {}
+    }
+
+    function openSystemApp(appId) {
+      if (!appId) return false;
+      try {
+        if (window.parent && typeof window.parent.openWin11App === "function") {
+          window.parent.openWin11App(appId);
+          return true;
+        }
+      } catch {}
+      return false;
+    }
+
+    function handleTileAction(item) {
+      if (installed.has(item.id)) {
+        if (openSystemApp(item.appId)) return;
+        installed.delete(item.id);
+      } else {
+        installed.add(item.id);
+      }
+      saveInstalled();
+      render();
+      if (modalItem && modalItem.id === item.id) {
+        openModal(item);
+      }
+    }
+
+    function filteredItems() {
+      const q = query.trim().toLowerCase();
+      return ITEMS.filter((item) => {
+        const okSection =
+          activeSection === "home" ||
+          activeSection === "categories" ||
+          (activeSection === "apps" && item.kind === "apps") ||
+          (activeSection === "games" && item.kind === "games") ||
+          (activeSection === "library" && installed.has(item.id));
+
+        const okQuery =
+          !q ||
+          item.name.toLowerCase().includes(q) ||
+          item.sub.toLowerCase().includes(q) ||
+          item.desc.toLowerCase().includes(q);
+
+        return okSection && okQuery;
+      });
+    }
+
+    function render() {
+      const pageTitles = {
+        home: "Home",
+        apps: "Apps",
+        games: "Games",
+        categories: "Categories",
+        library: "Library"
+      };
+
+      const shelfTitles = {
+        home: "Top picks",
+        apps: "Essential & Creative Apps",
+        games: "Featured Games",
+        categories: "All Collections",
+        library: "Installed in Library"
+      };
+
+      document.getElementById("ms-page-title").textContent = pageTitles[activeSection] || "Home";
+      document.getElementById("ms-shelf-title").textContent = shelfTitles[activeSection] || "Top picks";
+
+      const list = filteredItems();
+      document.getElementById("ms-shelf-count").textContent = `${list.length} ${list.length === 1 ? "item" : "items"}`;
+
+      const row = document.getElementById("ms-tiles-row");
+      if (list.length === 0) {
+        row.innerHTML = `<div class="ms-empty">No items match your search.</div>`;
+        return;
+      }
+
+      row.innerHTML = "";
+      list.forEach((item) => {
+        const isInst = installed.has(item.id);
+        const tile = document.createElement("div");
+        tile.className = "ms-tile";
+
+        tile.innerHTML = `
+          <div class="ms-tile-visual" style="background: ${item.bg};">${ART_SVG[item.id] || ART_SVG.paint}</div>
+          <div class="ms-tile-body">
+            <div>
+              <div class="ms-tile-name">${item.name}</div>
+              <div class="ms-tile-sub">${item.sub}</div>
+            </div>
+            <div class="ms-tile-footer">
+              <span class="ms-tile-price">${isInst ? "Installed" : item.price}</span>
+              <button class="ms-tile-btn ${isInst ? "installed" : ""}" type="button">
+                ${isInst ? (item.appId ? "Open" : "Added") : "Get"}
+              </button>
+            </div>
+          </div>
+        `;
+
+        tile.addEventListener("click", () => openModal(item));
+        tile.querySelector(".ms-tile-btn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          handleTileAction(item);
+        });
+
+        row.appendChild(tile);
+      });
+    }
+
+    const backdrop = document.getElementById("ms-modal-backdrop");
+    const modalTitle = document.getElementById("ms-modal-title");
+    const modalCat = document.getElementById("ms-modal-cat");
+    const modalDesc = document.getElementById("ms-modal-desc");
+    const modalInstall = document.getElementById("ms-modal-install");
+    const modalClose = document.getElementById("ms-modal-close");
+
+    function openModal(item) {
+      modalItem = item;
+      const isInst = installed.has(item.id);
+      modalTitle.textContent = item.name;
+      modalCat.textContent = `${item.sub} · ${item.price}`;
+      modalDesc.textContent = item.desc;
+      modalInstall.textContent = isInst ? (item.appId ? "Open app" : "Remove") : "Get";
+      modalInstall.className = `ms-tile-btn ${isInst ? "installed" : ""}`;
+      backdrop.classList.add("open");
+      backdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal() {
+      modalItem = null;
+      backdrop.classList.remove("open");
+      backdrop.setAttribute("aria-hidden", "true");
+    }
+
+    modalClose.addEventListener("click", closeModal);
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) closeModal();
+    });
+    modalInstall.addEventListener("click", () => {
+      if (modalItem) handleTileAction(modalItem);
+    });
+
+    document.querySelectorAll(".ms-rail-btn[data-section]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        activeSection = btn.dataset.section;
+        document.querySelectorAll(".ms-rail-btn[data-section]").forEach((b) => {
+          b.classList.toggle("active", b === btn);
+        });
+        render();
+      });
+    });
+
+    document.getElementById("ms-search").addEventListener("input", (e) => {
+      query = e.target.value;
+      render();
+    });
+
+    document.getElementById("ms-hero-action").addEventListener("click", () => {
+      openSystemApp("paint");
+    });
+
+    render();
+  </script>
+</body>
+</html>

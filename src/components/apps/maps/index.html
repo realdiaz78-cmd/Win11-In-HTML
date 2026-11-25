@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapas · OpenStreetMap</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #eef2f6;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .map-shell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .map-sidebar {
+      width: 228px;
+      min-width: 175px;
+      background: #ffffff;
+      border-right: 1px solid #dce3ec;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      overflow-y: auto;
+      z-index: 2;
+    }
+
+    .map-search-form {
+      display: flex;
+      gap: 5px;
+    }
+
+    .map-search-form input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-family: inherit;
+      font-size: 12px;
+      color: #0f172a;
+      background: #f8fafc;
+      outline: none;
+      user-select: text;
+    }
+
+    .map-btn {
+      padding: 6px 9px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .map-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .map-btn.primary {
+      background: #0067c0;
+      border-color: #0067c0;
+      color: #ffffff;
+    }
+
+    .map-btn.primary:hover {
+      background: #00559f;
+    }
+
+    .map-sec-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #475569;
+      margin-top: 2px;
+    }
+
+    .map-places-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .map-place-item {
+      padding: 7px 9px;
+      border-radius: 7px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .map-place-item:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+    }
+
+    .map-place-item.active {
+      background: #e0f2fe;
+      border-color: #0284c7;
+    }
+
+    .map-place-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .map-place-sub {
+      font-size: 10.5px;
+      color: #64748b;
+    }
+
+    .map-info-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 9px;
+      font-size: 11px;
+      color: #334155;
+      line-height: 1.45;
+    }
+
+    .map-stage-wrap {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      background: #dbe7f2;
+      overflow: hidden;
+    }
+
+    #osm-map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-status-bar {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 500;
+      background: rgba(15, 23, 42, 0.84);
+      color: #f8fafc;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="map-shell">
+    <aside class="map-sidebar">
+      <form id="map-search-form" class="map-search-form">
+        <input id="map-search-input" type="text" placeholder="Buscar ciudad o lugar...">
+        <button class="map-btn primary" type="submit">Ir</button>
+      </form>
+
+      <div style="display:flex;gap:5px;">
+        <button id="map-pin-btn" class="map-btn" type="button" style="flex:1;">+ Pin centro</button>
+        <button id="map-center-btn" class="map-btn" type="button">Centrar</button>
+      </div>
+
+      <div class="map-sec-title">Lugares</div>
+      <div id="map-places-list" class="map-places-list"></div>
+
+      <div class="map-sec-title">Detalle y distancia</div>
+      <div id="map-info-card" class="map-info-card">
+        Arrastra el mapa, busca cualquier ciudad o haz clic en el mapa para poner un pin.
+      </div>
+    </aside>
+
+    <main class="map-stage-wrap">
+      <div id="osm-map"></div>
+      <div id="map-status" class="map-status-bar">OpenStreetMap · Rosario</div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const searchForm = document.getElementById("map-search-form");
+    const searchInput = document.getElementById("map-search-input");
+    const pinBtn = document.getElementById("map-pin-btn");
+    const centerBtn = document.getElementById("map-center-btn");
+    const placesListEl = document.getElementById("map-places-list");
+    const infoCardEl = document.getElementById("map-info-card");
+    const statusEl = document.getElementById("map-status");
+
+    let places = [
+      { id: "p-1", name: "Rosario", note: "Santa Fe, Argentina", lat: -32.9468, lng: -60.6393 },
+      { id: "p-2", name: "Buenos Aires", note: "Argentina", lat: -34.6037, lng: -58.3816 },
+      { id: "p-3", name: "Madrid", note: "España", lat: 40.4168, lng: -3.7038 },
+      { id: "p-4", name: "Tokio", note: "Japón", lat: 35.6762, lng: 139.6503 }
+    ];
+
+    let selectedId = places[0].id;
+    let originId = places[0].id;
+    let map = null;
+    let markersLayer = null;
+    let routeLine = null;
+
+    function haversineKm(a, b) {
+      if (!a || !b) return "0.0";
+      const toRad = (deg) => (deg * Math.PI) / 180;
+      const R = 6371;
+      const dLat = toRad(b.lat - a.lat);
+      const dLng = toRad(b.lng - a.lng);
+      const h =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return (2 * R * Math.asin(Math.sqrt(h))).toFixed(1);
+    }
+
+    function syncMarkersAndRoute() {
+      if (!map || !markersLayer) return;
+      markersLayer.clearLayers();
+
+      places.forEach((p) => {
+        const isSel = p.id === selectedId;
+        const marker = L.circleMarker([p.lat, p.lng], {
+          radius: isSel ? 8 : 6,
+          color: "#ffffff",
+          weight: 2,
+          fillColor: isSel ? "#dc2626" : "#0067c0",
+          fillOpacity: 0.95
+        }).bindTooltip(p.name);
+
+        marker.on("click", () => {
+          selectedId = p.id;
+          renderSidebar();
+          syncMarkersAndRoute();
+        });
+
+        marker.addTo(markersLayer);
+      });
+
+      if (routeLine) {
+        map.removeLayer(routeLine);
+        routeLine = null;
+      }
+
+      const origin = places.find((p) => p.id === originId);
+      const target = places.find((p) => p.id === selectedId);
+      if (origin && target && origin.id !== target.id) {
+        routeLine = L.polyline(
+          [
+            [origin.lat, origin.lng],
+            [target.lat, target.lng]
+          ],
+          { color: "#0067c0", weight: 2.5, dashArray: "6, 6" }
+        ).addTo(map);
+      }
+
+      statusEl.textContent = `OpenStreetMap · ${target ? target.name : "Listo"}`;
+    }
+
+    function renderSidebar() {
+      placesListEl.innerHTML = "";
+      places.forEach((p) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `map-place-item ${p.id === selectedId ? "active" : ""}`;
+        btn.innerHTML = `
+          <span class="map-place-name">${p.name}</span>
+          <span class="map-place-sub">${p.note}</span>
+        `;
+        btn.addEventListener("click", () => {
+          selectedId = p.id;
+          if (map) map.setView([p.lat, p.lng], Math.max(map.getZoom(), 11));
+          renderSidebar();
+          syncMarkersAndRoute();
+        });
+        placesListEl.appendChild(btn);
+      });
+
+      const active = places.find((p) => p.id === selectedId);
+      const origin = places.find((p) => p.id === originId) || places[0];
+      if (!active) return;
+
+      const dist = haversineKm(origin, active);
+      infoCardEl.innerHTML = `
+        <div><strong>${active.name}</strong></div>
+        <div style="color:#64748b;margin-bottom:4px;">${active.note}</div>
+        <div>Coord: ${active.lat.toFixed(4)}, ${active.lng.toFixed(4)}</div>
+        <div>Distancia desde ${origin ? origin.name : "Inicio"}: <strong>${dist} km</strong></div>
+        <div style="margin-top:6px;">
+          <button id="set-origin-btn" class="map-btn" type="button">Usar como origen</button>
+        </div>
+      `;
+
+      const setOriginBtn = document.getElementById("set-origin-btn");
+      if (setOriginBtn) {
+        setOriginBtn.addEventListener("click", () => {
+          originId = active.id;
+          renderSidebar();
+          syncMarkersAndRoute();
+        });
+      }
+    }
+
+    function addPin(lat, lng, name, note) {
+      const idx = places.length + 1;
+      const newPlace = {
+        id: `p-${Date.now()}`,
+        name: name || `Pin ${idx}`,
+        note: note || "Marcador en mapa",
+        lat,
+        lng
+      };
+      places.push(newPlace);
+      selectedId = newPlace.id;
+      renderSidebar();
+      syncMarkersAndRoute();
+    }
+
+    function initOsmMap() {
+      if (typeof L === "undefined") {
+        statusEl.textContent = "Sin conexión para cargar Leaflet / OpenStreetMap";
+        return;
+      }
+
+      map = L.map("osm-map", { zoomControl: true }).setView([places[0].lat, places[0].lng], 12);
+      const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+      });
+
+      tiles.on("tileerror", () => {
+        statusEl.textContent = "Error cargando tiles de OpenStreetMap (revisa conexión)";
+      });
+
+      tiles.addTo(map);
+      markersLayer = L.layerGroup().addTo(map);
+
+      map.on("click", (e) => {
+        addPin(e.latlng.lat, e.latlng.lng);
+      });
+
+      setTimeout(() => map.invalidateSize(), 150);
+      syncMarkersAndRoute();
+    }
+
+    searchForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const query = searchInput.value.trim();
+      if (!query) return;
+
+      const localMatch = places.find((p) => p.name.toLowerCase().includes(query.toLowerCase()));
+      if (localMatch) {
+        selectedId = localMatch.id;
+        if (map) map.setView([localMatch.lat, localMatch.lng], 12);
+        renderSidebar();
+        syncMarkersAndRoute();
+        searchInput.value = "";
+        return;
+      }
+
+      statusEl.textContent = `Buscando "${query}"...`;
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
+        );
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const item = data[0];
+          const lat = parseFloat(item.lat);
+          const lng = parseFloat(item.lon);
+          const shortName = (item.display_name || query).split(",")[0];
+          addPin(lat, lng, shortName, item.display_name || "Resultado OpenStreetMap");
+          if (map) map.setView([lat, lng], 12);
+        } else {
+          statusEl.textContent = `No se encontró "${query}"`;
+        }
+      } catch {
+        statusEl.textContent = "No se pudo consultar la búsqueda de OpenStreetMap";
+      }
+
+      searchInput.value = "";
+    });
+
+    pinBtn.addEventListener("click", () => {
+      if (!map) return;
+      const c = map.getCenter();
+      addPin(c.lat, c.lng);
+    });
+
+    centerBtn.addEventListener("click", () => {
+      const active = places.find((p) => p.id === selectedId);
+      if (map && active) {
+        map.setView([active.lat, active.lng], 12);
+      }
+    });
+
+    renderSidebar();
+    initOsmMap();
+  </script>
+</body>
+</html>

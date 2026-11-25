@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copilot</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .copilot-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+
+    .copilot-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 12px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .copilot-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .copilot-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(0, 103, 192, 0.12);
+      color: #0067c0;
+    }
+
+    .copilot-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copilot-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 11px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .copilot-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .copilot-viewport {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+    }
+
+    #copilot-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #ffffff;
+    }
+
+    .copilot-statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 12px;
+      background: #f1f5f9;
+      border-top: 1px solid #e2e8f0;
+      font-size: 11px;
+      color: #475569;
+    }
+
+    .copilot-url {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+  <div class="copilot-shell">
+    <div class="copilot-toolbar">
+      <div class="copilot-brand">
+        <span>✨</span>
+        <span>Microsoft Copilot</span>
+        <span class="copilot-badge">IFRAME</span>
+      </div>
+
+      <div class="copilot-actions">
+        <button id="btn-reload" class="copilot-btn" type="button" title="Recargar Copilot">
+          <span>↻</span>
+          <span>Recargar</span>
+        </button>
+        <a
+          class="copilot-btn"
+          href="https://copilot.microsoft.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Abrir en pestaña nueva"
+        >
+          <span>↗</span>
+          <span>Pestaña externa</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="copilot-viewport">
+      <iframe
+        id="copilot-iframe"
+        src="https://copilot.microsoft.com"
+        title="Microsoft Copilot"
+        allow="clipboard-read; clipboard-write; microphone"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+      ></iframe>
+    </div>
+
+    <div class="copilot-statusbar">
+      <span id="status-url" class="copilot-url">https://copilot.microsoft.com</span>
+      <span id="status-state">Cargando...</span>
+    </div>
+  </div>
+
+  <script>
+    const COPILOT_URL = "https://copilot.microsoft.com";
+    const iframeEl = document.getElementById("copilot-iframe");
+    const btnReload = document.getElementById("btn-reload");
+    const statusStateEl = document.getElementById("status-state");
+
+    btnReload.addEventListener("click", () => {
+      statusStateEl.textContent = "Recargando...";
+      iframeEl.src = COPILOT_URL;
+    });
+
+    iframeEl.addEventListener("load", () => {
+      statusStateEl.textContent = "Listo";
+    });
+  </script>
+</body>
+</html>

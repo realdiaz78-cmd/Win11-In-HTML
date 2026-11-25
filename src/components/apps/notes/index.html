@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notas rápidas</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .notes-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .notes-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .notes-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .notes-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: #facc15;
+      border: 1px solid #eab308;
+    }
+
+    .notes-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      justify-content: flex-end;
+      min-width: 200px;
+    }
+
+    .notes-search {
+      width: min(210px, 55%);
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-family: inherit;
+      font-size: 12px;
+      color: #0f172a;
+      background: #f8fafc;
+      outline: none;
+      user-select: text;
+    }
+
+    .notes-new-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      background: #0067c0;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.14s ease;
+    }
+
+    .notes-new-btn:hover {
+      background: #00559f;
+    }
+
+    .notes-board {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 12px;
+      align-content: start;
+    }
+
+    .note-card {
+      border-radius: 8px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      min-height: 155px;
+      max-height: 250px;
+      overflow: hidden;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .note-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    .note-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 6px 8px;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .note-colors {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .color-swatch {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 1px solid rgba(15, 23, 42, 0.25);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .note-del-btn {
+      border: none;
+      background: transparent;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0 3px;
+      line-height: 1;
+    }
+
+    .note-del-btn:hover {
+      color: #dc2626;
+    }
+
+    .note-textarea {
+      flex: 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      background: transparent;
+      padding: 9px 10px;
+      font-family: inherit;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #1e293b;
+      user-select: text;
+    }
+
+    .note-footer {
+      padding: 4px 10px 6px;
+      font-size: 10px;
+      color: #475569;
+      text-align: right;
+    }
+
+    .notes-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 28px 14px;
+      font-size: 12.5px;
+      color: #64748b;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="notes-shell">
+    <header class="notes-topbar">
+      <div class="notes-brand">
+        <span class="notes-dot"></span>
+        <span>Notas rápidas</span>
+      </div>
+
+      <div class="notes-actions">
+        <input id="notes-search" class="notes-search" type="text" placeholder="Buscar notas...">
+        <button id="btn-new-note" class="notes-new-btn" type="button">+ Nueva nota</button>
+      </div>
+    </header>
+
+    <main id="notes-board" class="notes-board"></main>
+  </div>
+
+  <script>
+    const NOTES_STORAGE_KEY = "win11_notas_rapidas_v1";
+
+    const PALETTE = [
+      { id: "yellow", hex: "#fef08a" },
+      { id: "blue", hex: "#bae6fd" },
+      { id: "green", hex: "#bbf7d0" },
+      { id: "pink", hex: "#fbcfe8" },
+      { id: "purple", hex: "#ddd6fe" }
+    ];
+
+    const DEFAULT_NOTES = [
+      {
+        id: "n-1",
+        color: "#fef08a",
+        text: "Recordatorio: probar Notas rápidas dentro de Win11 in HTML y guardar cambios.",
+        updated: "Hoy"
+      },
+      {
+        id: "n-2",
+        color: "#bae6fd",
+        text: "Ideas de apps:\n- Notas rápidas\n- Revisar el index.html principal",
+        updated: "Hoy"
+      }
+    ];
+
+    function loadNotes() {
+      try {
+        const raw = localStorage.getItem(NOTES_STORAGE_KEY);
+        if (!raw) return [...DEFAULT_NOTES];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [...DEFAULT_NOTES];
+      } catch {
+        return [...DEFAULT_NOTES];
+      }
+    }
+
+    let notes = loadNotes();
+    let searchQuery = "";
+
+    function saveNotes() {
+      try {
+        localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+      } catch {}
+    }
+
+    function nowLabel() {
+      return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function renderNotes() {
+      const board = document.getElementById("notes-board");
+      const q = searchQuery.trim().toLowerCase();
+      const visible = notes.filter((n) => !q || (n.text || "").toLowerCase().includes(q));
+
+      if (visible.length === 0) {
+        board.innerHTML = `<div class="notes-empty">No hay notas para mostrar. Crea una nueva con "+ Nueva nota".</div>`;
+        return;
+      }
+
+      board.innerHTML = "";
+      visible.forEach((note) => {
+        const card = document.createElement("article");
+        card.className = "note-card";
+        card.style.backgroundColor = note.color || "#fef08a";
+
+        const head = document.createElement("div");
+        head.className = "note-card-head";
+
+        const colorsWrap = document.createElement("div");
+        colorsWrap.className = "note-colors";
+
+        PALETTE.forEach((c) => {
+          const sw = document.createElement("button");
+          sw.type = "button";
+          sw.className = "color-swatch";
+          sw.style.backgroundColor = c.hex;
+          sw.title = `Color ${c.id}`;
+          sw.addEventListener("click", () => {
+            note.color = c.hex;
+            note.updated = nowLabel();
+            saveNotes();
+            renderNotes();
+          });
+          colorsWrap.appendChild(sw);
+        });
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "note-del-btn";
+        delBtn.title = "Eliminar nota";
+        delBtn.textContent = "✕";
+        delBtn.addEventListener("click", () => {
+          notes = notes.filter((item) => item.id !== note.id);
+          saveNotes();
+          renderNotes();
+        });
+
+        head.appendChild(colorsWrap);
+        head.appendChild(delBtn);
+
+        const textarea = document.createElement("textarea");
+        textarea.className = "note-textarea";
+        textarea.placeholder = "Escribe una nota...";
+        textarea.value = note.text || "";
+        textarea.addEventListener("input", () => {
+          note.text = textarea.value;
+          note.updated = nowLabel();
+          footer.textContent = `Guardado · ${note.updated}`;
+          saveNotes();
+        });
+
+        const footer = document.createElement("div");
+        footer.className = "note-footer";
+        footer.textContent = note.updated || "Listo";
+
+        card.appendChild(head);
+        card.appendChild(textarea);
+        card.appendChild(footer);
+        board.appendChild(card);
+      });
+    }
+
+    document.getElementById("btn-new-note").addEventListener("click", () => {
+      const nextColor = PALETTE[notes.length % PALETTE.length].hex;
+      notes.unshift({
+        id: `n-${Date.now()}`,
+        color: nextColor,
+        text: "",
+        updated: nowLabel()
+      });
+      saveNotes();
+      renderNotes();
+      const firstArea = document.querySelector("#notes-board .note-textarea");
+      if (firstArea) firstArea.focus();
+    });
+
+    document.getElementById("notes-search").addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderNotes();
+    });
+
+    renderNotes();
+  </script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrador de tareas</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .tm-shell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Barra lateral izquierda */
+    .tm-sidebar {
+      width: 164px;
+      min-width: 132px;
+      background: #eef2f7;
+      border-right: 1px solid #dce3ec;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tm-brand {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      padding: 4px 8px 8px;
+    }
+
+    .tm-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #1e293b;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+
+    .tm-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .tm-nav-btn.active {
+      background: #ffffff;
+      color: #0067c0;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    /* Contenido principal */
+    .tm-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .tm-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .tm-heading {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .tm-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tm-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .tm-btn.danger {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+
+    .tm-btn.danger:hover {
+      background: #fecaca;
+    }
+
+    /* Vista Procesos */
+    .tm-processes-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .tm-table-head {
+      display: grid;
+      grid-template-columns: 1.6fr 0.7fr 0.7fr 0.8fr;
+      gap: 8px;
+      padding: 8px 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .tm-table-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .tm-row {
+      display: grid;
+      grid-template-columns: 1.6fr 0.7fr 0.7fr 0.8fr;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.1s ease;
+    }
+
+    .tm-row:hover {
+      background: #f8fafc;
+    }
+
+    .tm-row.selected {
+      background: #eff6ff;
+    }
+
+    .tm-proc-name {
+      font-weight: 600;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tm-metric {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 11.5px;
+      color: #334155;
+    }
+
+    .tm-status-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #0f766e;
+    }
+
+    /* Vista Rendimiento */
+    .tm-perf-view {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tm-perf-view.active {
+      display: flex;
+    }
+
+    .tm-perf-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tm-perf-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .tm-perf-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .tm-perf-val {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0067c0;
+      font-family: "Cascadia Mono", "Consolas", monospace;
+    }
+
+    .tm-chart-canvas {
+      width: 100%;
+      height: 82px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="tm-shell">
+    <aside class="tm-sidebar">
+      <div class="tm-brand">Task Manager</div>
+      <button class="tm-nav-btn active" type="button" data-tab="processes">Procesos</button>
+      <button class="tm-nav-btn" type="button" data-tab="performance">Rendimiento</button>
+    </aside>
+
+    <main class="tm-main">
+      <header class="tm-topbar">
+        <span id="tm-heading" class="tm-heading">Procesos</span>
+        <div style="display:flex;gap:6px;">
+          <button id="tm-restore-btn" class="tm-btn" type="button">Restaurar</button>
+          <button id="tm-end-btn" class="tm-btn danger" type="button">Finalizar tarea</button>
+        </div>
+      </header>
+
+      <div id="tm-processes-view" class="tm-processes-view">
+        <div class="tm-table-head">
+          <span>Nombre</span>
+          <span>CPU</span>
+          <span>Memoria</span>
+          <span>Estado</span>
+        </div>
+        <div id="tm-table-body" class="tm-table-body"></div>
+      </div>
+
+      <section id="tm-performance-view" class="tm-perf-view" aria-hidden="true">
+        <div class="tm-perf-card">
+          <div class="tm-perf-top">
+            <span class="tm-perf-title">CPU</span>
+            <span id="tm-cpu-now" class="tm-perf-val">0%</span>
+          </div>
+          <canvas id="tm-cpu-canvas" class="tm-chart-canvas" width="460" height="82"></canvas>
+        </div>
+
+        <div class="tm-perf-card">
+          <div class="tm-perf-top">
+            <span class="tm-perf-title">Memoria</span>
+            <span id="tm-mem-now" class="tm-perf-val">0%</span>
+          </div>
+          <canvas id="tm-mem-canvas" class="tm-chart-canvas" width="460" height="82"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const INITIAL_PROCESSES = [
+      { id: "explorer", name: "Explorador de archivos", memMb: 68, baseCpu: 3 },
+      { id: "edge", name: "Microsoft Edge", memMb: 145, baseCpu: 6 },
+      { id: "photos", name: "Fotos", memMb: 54, baseCpu: 2 },
+      { id: "outlook", name: "Correo / Outlook", memMb: 62, baseCpu: 2 },
+      { id: "calendar", name: "Calendario", memMb: 41, baseCpu: 1 },
+      { id: "media-player", name: "Media Player", memMb: 88, baseCpu: 5 },
+      { id: "xbox", name: "Xbox Games", memMb: 112, baseCpu: 8 },
+      { id: "weather", name: "El Tiempo", memMb: 38, baseCpu: 1 },
+      { id: "recorder", name: "Grabadora", memMb: 34, baseCpu: 1 },
+      { id: "maps", name: "Mapas (OpenStreetMap)", memMb: 96, baseCpu: 4 },
+      { id: "notes", name: "Notas rápidas", memMb: 29, baseCpu: 1 }
+    ];
+
+    let processes = INITIAL_PROCESSES.map((p) => ({ ...p, cpu: p.baseCpu }));
+    let selectedProcId = processes[0]?.id || null;
+    let currentTab = "processes";
+
+    const cpuHistory = Array.from({ length: 36 }, () => 14);
+    const memHistory = Array.from({ length: 36 }, () => 46);
+
+    const tableBodyEl = document.getElementById("tm-table-body");
+    const procViewEl = document.getElementById("tm-processes-view");
+    const perfViewEl = document.getElementById("tm-performance-view");
+    const headingEl = document.getElementById("tm-heading");
+    const cpuNowEl = document.getElementById("tm-cpu-now");
+    const memNowEl = document.getElementById("tm-mem-now");
+    const cpuCanvas = document.getElementById("tm-cpu-canvas");
+    const memCanvas = document.getElementById("tm-mem-canvas");
+
+    function renderProcesses() {
+      if (!processes.some((p) => p.id === selectedProcId)) {
+        selectedProcId = processes[0]?.id || null;
+      }
+
+      if (processes.length === 0) {
+        tableBodyEl.innerHTML = `<div style="padding:18px;font-size:12px;color:#64748b;text-align:center;">No hay procesos activos. Pulsa "Restaurar" para iniciarlos de nuevo.</div>`;
+        return;
+      }
+
+      tableBodyEl.innerHTML = "";
+      processes.forEach((p) => {
+        const row = document.createElement("div");
+        row.className = `tm-row ${p.id === selectedProcId ? "selected" : ""}`;
+        row.innerHTML = `
+          <span class="tm-proc-name">${p.name}</span>
+          <span class="tm-metric">${p.cpu}%</span>
+          <span class="tm-metric">${p.memMb} MB</span>
+          <span class="tm-status-tag">En ejecución</span>
+        `;
+        row.addEventListener("click", () => {
+          selectedProcId = p.id;
+          renderProcesses();
+        });
+        tableBodyEl.appendChild(row);
+      });
+    }
+
+    function drawLineChart(canvasEl, series, strokeColor, fillColor) {
+      const c = canvasEl.getContext("2d");
+      const w = canvasEl.width;
+      const h = canvasEl.height;
+      c.clearRect(0, 0, w, h);
+
+      c.strokeStyle = "#f1f5f9";
+      c.lineWidth = 1;
+      for (let y = 20; y < h; y += 22) {
+        c.beginPath();
+        c.moveTo(0, y);
+        c.lineTo(w, y);
+        c.stroke();
+      }
+
+      if (series.length < 2) return;
+      const stepX = w / (series.length - 1);
+
+      c.beginPath();
+      series.forEach((val, idx) => {
+        const clamped = Math.max(2, Math.min(98, val));
+        const px = idx * stepX;
+        const py = h - (clamped / 100) * (h - 10) - 5;
+        if (idx === 0) c.moveTo(px, py);
+        else c.lineTo(px, py);
+      });
+
+      c.strokeStyle = strokeColor;
+      c.lineWidth = 2;
+      c.stroke();
+
+      c.lineTo(w, h);
+      c.lineTo(0, h);
+      c.closePath();
+      c.fillStyle = fillColor;
+      c.fill();
+    }
+
+    function tickMetrics() {
+      let totalCpu = 4;
+      let totalMemMb = 240;
+
+      processes.forEach((p) => {
+        const jitter = Math.floor(Math.random() * 5) - 2;
+        p.cpu = Math.max(1, Math.min(45, p.baseCpu + jitter));
+        totalCpu += p.cpu;
+        totalMemMb += p.memMb;
+      });
+
+      const cpuPct = Math.min(96, Math.round(totalCpu));
+      const memPct = Math.min(94, Math.max(18, Math.round((totalMemMb / 2048) * 100)));
+
+      cpuHistory.push(cpuPct);
+      if (cpuHistory.length > 36) cpuHistory.shift();
+
+      memHistory.push(memPct);
+      if (memHistory.length > 36) memHistory.shift();
+
+      cpuNowEl.textContent = `${cpuPct}%`;
+      memNowEl.textContent = `${memPct}% (${totalMemMb} MB)`;
+
+      if (currentTab === "processes") {
+        renderProcesses();
+      } else {
+        drawLineChart(cpuCanvas, cpuHistory, "#0067c0", "rgba(0, 103, 192, 0.14)");
+        drawLineChart(memCanvas, memHistory, "#0f766e", "rgba(15, 118, 110, 0.14)");
+      }
+    }
+
+    document.querySelectorAll(".tm-nav-btn[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentTab = btn.dataset.tab;
+        document.querySelectorAll(".tm-nav-btn[data-tab]").forEach((b) => {
+          b.classList.toggle("active", b === btn);
+        });
+
+        if (currentTab === "performance") {
+          headingEl.textContent = "Rendimiento";
+          procViewEl.style.display = "none";
+          perfViewEl.classList.add("active");
+          perfViewEl.setAttribute("aria-hidden", "false");
+          drawLineChart(cpuCanvas, cpuHistory, "#0067c0", "rgba(0, 103, 192, 0.14)");
+          drawLineChart(memCanvas, memHistory, "#0f766e", "rgba(15, 118, 110, 0.14)");
+        } else {
+          headingEl.textContent = "Procesos";
+          perfViewEl.classList.remove("active");
+          perfViewEl.setAttribute("aria-hidden", "true");
+          procViewEl.style.display = "flex";
+          renderProcesses();
+        }
+      });
+    });
+
+    document.getElementById("tm-end-btn").addEventListener("click", () => {
+      if (!selectedProcId) return;
+      processes = processes.filter((p) => p.id !== selectedProcId);
+      renderProcesses();
+    });
+
+    document.getElementById("tm-restore-btn").addEventListener("click", () => {
+      processes = INITIAL_PROCESSES.map((p) => ({ ...p, cpu: p.baseCpu }));
+      selectedProcId = processes[0]?.id || null;
+      renderProcesses();
+    });
+
+    renderProcesses();
+    tickMetrics();
+    setInterval(tickMetrics, 1200);
+  </script>
+</body>
+</html>

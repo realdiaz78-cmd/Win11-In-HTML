@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fotos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .photos-shell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Barra lateral estilo Windows 11 */
+    .photos-sidebar {
+      width: 175px;
+      min-width: 145px;
+      background: #eef2f7;
+      border-right: 1px solid #dce3ec;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .photos-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .photos-brand svg {
+      width: 18px;
+      height: 18px;
+      stroke: #0067c0;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .photos-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #1e293b;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.14s ease, color 0.14s ease;
+    }
+
+    .photos-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .photos-nav-btn.active {
+      background: #ffffff;
+      color: #0067c0;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    .photos-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+    }
+
+    .photos-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 14px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .photos-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .photos-heading {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .photos-badge {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .photos-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .p-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .p-btn:hover {
+      background: #f1f5f9;
+    }
+
+    .p-btn.primary {
+      background: #0067c0;
+      border-color: #0067c0;
+      color: #ffffff;
+    }
+
+    .p-btn.primary:hover {
+      background: #00559f;
+    }
+
+    /* Vista cuadrícula */
+    .photos-grid-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+      gap: 10px;
+    }
+
+    .photo-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .photo-card:hover {
+      transform: translateY(-2px);
+      border-color: #93c5fd;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    }
+
+    .photo-thumb {
+      width: 100%;
+      height: 105px;
+      object-fit: cover;
+      display: block;
+      background: #e2e8f0;
+    }
+
+    .photo-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 6px 8px;
+    }
+
+    .photo-card-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .photo-fav-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .photo-fav-btn.active {
+      color: #eab308;
+    }
+
+    .photos-empty {
+      padding: 28px;
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+    }
+
+    /* Visor individual */
+    .photo-viewer {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .photo-viewer.open {
+      display: flex;
+    }
+
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      flex-wrap: wrap;
+    }
+
+    .viewer-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 210px;
+    }
+
+    .viewer-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .v-btn {
+      padding: 4px 9px;
+      border-radius: 5px;
+      border: 1px solid #475569;
+      background: #334155;
+      color: #f8fafc;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .v-btn:hover {
+      background: #475569;
+    }
+
+    .v-btn.accent {
+      background: #0067c0;
+      border-color: #0067c0;
+    }
+
+    .v-btn.accent:hover {
+      background: #00559f;
+    }
+
+    .viewer-stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 14px;
+      position: relative;
+    }
+
+    #viewer-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      transition: transform 0.16s ease;
+    }
+
+    .viewer-status {
+      padding: 4px 12px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="photos-shell">
+    <aside class="photos-sidebar">
+      <div class="photos-brand">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span>Fotos</span>
+      </div>
+      <button class="photos-nav-btn active" type="button" data-filter="all">Todas las fotos</button>
+      <button class="photos-nav-btn" type="button" data-filter="favorites">Favoritos</button>
+      <button class="photos-nav-btn" type="button" data-filter="wallpapers">Fondos Win11</button>
+    </aside>
+
+    <main class="photos-main">
+      <!-- Vista de galería -->
+      <div id="gallery-view" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+        <header class="photos-topbar">
+          <div class="photos-title-group">
+            <span id="gallery-heading" class="photos-heading">Todas las fotos</span>
+            <span id="gallery-count" class="photos-badge">0 elementos</span>
+          </div>
+
+          <div class="photos-actions">
+            <input id="file-upload" type="file" accept="image/*" multiple hidden>
+            <button id="btn-upload" class="p-btn primary" type="button">+ Agregar fotos</button>
+          </div>
+        </header>
+
+        <div class="photos-grid-wrap">
+          <div id="photos-grid" class="photos-grid"></div>
+        </div>
+      </div>
+
+      <!-- Visor individual -->
+      <section id="photo-viewer" class="photo-viewer" aria-hidden="true">
+        <div class="viewer-toolbar">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="btn-back" class="v-btn" type="button">← Volver</button>
+            <span id="viewer-title" class="viewer-title">Foto</span>
+          </div>
+
+          <div class="viewer-controls">
+            <button id="btn-prev" class="v-btn" type="button" title="Anterior">◀</button>
+            <button id="btn-next" class="v-btn" type="button" title="Siguiente">▶</button>
+            <button id="btn-zoom-out" class="v-btn" type="button" title="Alejar">−</button>
+            <button id="btn-zoom-in" class="v-btn" type="button" title="Acercar">+</button>
+            <button id="btn-rotate" class="v-btn" type="button" title="Rotar 90°">↻</button>
+            <button id="btn-fav-viewer" class="v-btn" type="button" title="Favorito">★</button>
+            <button id="btn-set-bg" class="v-btn accent" type="button">Usar como fondo</button>
+          </div>
+        </div>
+
+        <div class="viewer-stage">
+          <img id="viewer-img" src="" alt="Vista previa">
+        </div>
+
+        <div class="viewer-status">
+          <span id="viewer-zoom-label">Zoom: 100% · Rotación: 0°</span>
+          <span id="viewer-msg">Listo</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const FAV_STORAGE_KEY = "win11_photos_favs_v1";
+
+    const DEFAULT_PHOTOS = [
+      {
+        id: "wp-default",
+        name: "Windows 11 Bloom",
+        src: "../../../../public/img/wallpaper/default/img0.jpg",
+        desktopSrc: "public/img/wallpaper/default/img0.jpg",
+        isWallpaper: true
+      },
+      {
+        id: "wp-dark",
+        name: "Dark Theme Bloom",
+        src: "../../../../public/img/wallpaper/dark/dark-theme.jpg",
+        desktopSrc: "public/img/wallpaper/dark/dark-theme.jpg",
+        isWallpaper: true
+      },
+      {
+        id: "wp-theme-a",
+        name: "Tema A · Glow",
+        src: "../../../../public/img/wallpaper/Theme-A/img1.jpg",
+        desktopSrc: "public/img/wallpaper/Theme-A/img1.jpg",
+        isWallpaper: true
+      },
+      {
+        id: "wp-theme-b",
+        name: "Tema B · Sunrise",
+        src: "../../../../public/img/wallpaper/Theme-B/img0.jpg",
+        desktopSrc: "public/img/wallpaper/Theme-B/img0.jpg",
+        isWallpaper: true
+      },
+      {
+        id: "wp-theme-c",
+        name: "Tema C · Lake",
+        src: "../../../../public/img/wallpaper/Theme-C/img2.jpg",
+        desktopSrc: "public/img/wallpaper/Theme-C/img2.jpg",
+        isWallpaper: true
+      },
+      {
+        id: "wp-theme-d",
+        name: "Tema D · Flow",
+        src: "../../../../public/img/wallpaper/Theme-D/img0.jpg",
+        desktopSrc: "public/img/wallpaper/Theme-D/img0.jpg",
+        isWallpaper: true
+      }
+    ];
+
+    function loadFavs() {
+      try {
+        const raw = localStorage.getItem(FAV_STORAGE_KEY);
+        if (!raw) return new Set(["wp-default", "wp-theme-c"]);
+        const arr = JSON.parse(raw);
+        return new Set(Array.isArray(arr) ? arr : []);
+      } catch {
+        return new Set(["wp-default", "wp-theme-c"]);
+      }
+    }
+
+    const favorites = loadFavs();
+    let photos = [...DEFAULT_PHOTOS];
+    let currentFilter = "all";
+    let currentIndex = -1;
+    let zoomLevel = 1;
+    let rotationDeg = 0;
+
+    function saveFavs() {
+      try {
+        localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(Array.from(favorites)));
+      } catch {}
+    }
+
+    function getVisiblePhotos() {
+      if (currentFilter === "favorites") {
+        return photos.filter((p) => favorites.has(p.id));
+      }
+      if (currentFilter === "wallpapers") {
+        return photos.filter((p) => p.isWallpaper);
+      }
+      return photos;
+    }
+
+    function renderGallery() {
+      const grid = document.getElementById("photos-grid");
+      const heading = document.getElementById("gallery-heading");
+      const count = document.getElementById("gallery-count");
+
+      const titles = {
+        all: "Todas las fotos",
+        favorites: "Favoritos",
+        wallpapers: "Fondos Win11"
+      };
+      heading.textContent = titles[currentFilter] || "Fotos";
+
+      const list = getVisiblePhotos();
+      count.textContent = `${list.length} ${list.length === 1 ? "elemento" : "elementos"}`;
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="photos-empty">No hay fotos en esta vista todavía.</div>`;
+        return;
+      }
+
+      grid.innerHTML = "";
+      list.forEach((photo, idx) => {
+        const isFav = favorites.has(photo.id);
+        const card = document.createElement("div");
+        card.className = "photo-card";
+
+        card.innerHTML = `
+          <img class="photo-thumb" src="${photo.src}" alt="${photo.name}" loading="lazy">
+          <div class="photo-card-footer">
+            <span class="photo-card-name">${photo.name}</span>
+            <button class="photo-fav-btn ${isFav ? "active" : ""}" type="button" title="Favorito">★</button>
+          </div>
+        `;
+
+        card.addEventListener("click", () => openViewer(idx));
+        card.querySelector(".photo-fav-btn").addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (favorites.has(photo.id)) favorites.delete(photo.id);
+          else favorites.add(photo.id);
+          saveFavs();
+          renderGallery();
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    const galleryView = document.getElementById("gallery-view");
+    const viewerEl = document.getElementById("photo-viewer");
+    const viewerImg = document.getElementById("viewer-img");
+    const viewerTitle = document.getElementById("viewer-title");
+    const viewerZoomLabel = document.getElementById("viewer-zoom-label");
+    const viewerMsg = document.getElementById("viewer-msg");
+    const favViewerBtn = document.getElementById("btn-fav-viewer");
+
+    function updateTransform() {
+      viewerImg.style.transform = `scale(${zoomLevel}) rotate(${rotationDeg}deg)`;
+      viewerZoomLabel.textContent = `Zoom: ${Math.round(zoomLevel * 100)}% · Rotación: ${rotationDeg}°`;
+    }
+
+    function openViewer(idx) {
+      const list = getVisiblePhotos();
+      if (idx < 0 || idx >= list.length) return;
+      currentIndex = idx;
+      zoomLevel = 1;
+      rotationDeg = 0;
+
+      const photo = list[currentIndex];
+      viewerImg.src = photo.src;
+      viewerTitle.textContent = photo.name;
+      favViewerBtn.style.color = favorites.has(photo.id) ? "#facc15" : "#f8fafc";
+      viewerMsg.textContent = "Listo";
+      updateTransform();
+
+      galleryView.style.display = "none";
+      viewerEl.classList.add("open");
+      viewerEl.setAttribute("aria-hidden", "false");
+    }
+
+    function closeViewer() {
+      viewerEl.classList.remove("open");
+      viewerEl.setAttribute("aria-hidden", "true");
+      galleryView.style.display = "flex";
+      renderGallery();
+    }
+
+    document.getElementById("btn-back").addEventListener("click", closeViewer);
+
+    document.getElementById("btn-prev").addEventListener("click", () => {
+      const list = getVisiblePhotos();
+      if (list.length === 0) return;
+      openViewer((currentIndex - 1 + list.length) % list.length);
+    });
+
+    document.getElementById("btn-next").addEventListener("click", () => {
+      const list = getVisiblePhotos();
+      if (list.length === 0) return;
+      openViewer((currentIndex + 1) % list.length);
+    });
+
+    document.getElementById("btn-zoom-in").addEventListener("click", () => {
+      zoomLevel = Math.min(2.5, +(zoomLevel + 0.2).toFixed(2));
+      updateTransform();
+    });
+
+    document.getElementById("btn-zoom-out").addEventListener("click", () => {
+      zoomLevel = Math.max(0.4, +(zoomLevel - 0.2).toFixed(2));
+      updateTransform();
+    });
+
+    document.getElementById("btn-rotate").addEventListener("click", () => {
+      rotationDeg = (rotationDeg + 90) % 360;
+      updateTransform();
+    });
+
+    favViewerBtn.addEventListener("click", () => {
+      const list = getVisiblePhotos();
+      const photo = list[currentIndex];
+      if (!photo) return;
+      if (favorites.has(photo.id)) favorites.delete(photo.id);
+      else favorites.add(photo.id);
+      saveFavs();
+      favViewerBtn.style.color = favorites.has(photo.id) ? "#facc15" : "#f8fafc";
+    });
+
+    document.getElementById("btn-set-bg").addEventListener("click", () => {
+      const list = getVisiblePhotos();
+      const photo = list[currentIndex];
+      if (!photo) return;
+      const bgUrl = photo.desktopSrc || photo.src;
+      try {
+        const parentDesktop = window.parent && window.parent.document.getElementById("desktop");
+        if (parentDesktop) {
+          parentDesktop.style.backgroundImage = `url("${bgUrl}")`;
+          window.parent.document.querySelectorAll(".virtual-desktop-card").forEach((card) => {
+            card.style.backgroundImage = `url("${bgUrl}")`;
+          });
+          viewerMsg.textContent = "Fondo de escritorio actualizado";
+          return;
+        }
+      } catch {}
+      viewerMsg.textContent = "Abre Fotos dentro de Win11 para cambiar el fondo";
+    });
+
+    const uploadInput = document.getElementById("file-upload");
+    document.getElementById("btn-upload").addEventListener("click", () => {
+      uploadInput.click();
+    });
+
+    uploadInput.addEventListener("change", (e) => {
+      const files = Array.from(e.target.files || []);
+      files.forEach((file) => {
+        const objectUrl = URL.createObjectURL(file);
+        photos.unshift({
+          id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          name: file.name,
+          src: objectUrl,
+          desktopSrc: objectUrl,
+          isWallpaper: false
+        });
+      });
+      uploadInput.value = "";
+      renderGallery();
+    });
+
+    document.querySelectorAll(".photos-nav-btn[data-filter]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentFilter = btn.dataset.filter;
+        document.querySelectorAll(".photos-nav-btn[data-filter]").forEach((b) => {
+          b.classList.toggle("active", b === btn);
+        });
+        if (viewerEl.classList.contains("open")) {
+          closeViewer();
+        } else {
+          renderGallery();
+        }
+      });
+    });
+
+    renderGallery();
+  </script>
+</body>
+</html>

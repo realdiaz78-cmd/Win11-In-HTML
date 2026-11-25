@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paint</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .paint-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+
+    .paint-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tool-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .tool-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .tool-btn.active {
+      background: #dbeafe;
+      border-color: #3b82f6;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+
+    .tool-btn.primary {
+      background: #0067c0;
+      border-color: #0067c0;
+      color: #ffffff;
+    }
+
+    .tool-btn.primary:hover {
+      background: #00559f;
+    }
+
+    .color-input {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .size-label {
+      font-size: 11px;
+      color: #475569;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    #size-slider {
+      width: 78px;
+      cursor: pointer;
+    }
+
+    .canvas-stage {
+      flex: 1;
+      min-height: 0;
+      padding: 12px;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .canvas-card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+      overflow: hidden;
+    }
+
+    #paint-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .paint-statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 5px 12px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      font-size: 11px;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+  <div class="paint-shell">
+    <div class="paint-toolbar">
+      <div class="tool-group">
+        <button id="tool-brush" class="tool-btn active" type="button" title="Pincel">
+          <span>🖌️</span>
+          <span>Pincel</span>
+        </button>
+        <button id="tool-eraser" class="tool-btn" type="button" title="Borrador">
+          <span>🧽</span>
+          <span>Borrador</span>
+        </button>
+        <input id="color-picker" class="color-input" type="color" value="#0f172a" title="Color del pincel">
+        <input id="size-slider" type="range" min="1" max="36" value="4" title="Grosor">
+        <span id="size-label" class="size-label">4px</span>
+      </div>
+
+      <div class="tool-group">
+        <button id="btn-clear" class="tool-btn" type="button" title="Limpiar lienzo">
+          <span>🗑️</span>
+          <span>Limpiar</span>
+        </button>
+        <button id="btn-save" class="tool-btn primary" type="button" title="Guardar como PNG">
+          <span>💾</span>
+          <span>Guardar PNG</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="canvas-stage">
+      <div class="canvas-card" id="canvas-card">
+        <canvas id="paint-canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="paint-statusbar">
+      <span id="status-tool">Herramienta: Pincel</span>
+      <span id="status-coords">x: 0, y: 0</span>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("paint-canvas");
+    const card = document.getElementById("canvas-card");
+    const ctx = canvas.getContext("2d");
+
+    const toolBrushBtn = document.getElementById("tool-brush");
+    const toolEraserBtn = document.getElementById("tool-eraser");
+    const colorPicker = document.getElementById("color-picker");
+    const sizeSlider = document.getElementById("size-slider");
+    const sizeLabel = document.getElementById("size-label");
+    const btnClear = document.getElementById("btn-clear");
+    const btnSave = document.getElementById("btn-save");
+    const statusTool = document.getElementById("status-tool");
+    const statusCoords = document.getElementById("status-coords");
+
+    let currentTool = "brush";
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    function fillWhiteBackground() {
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
+    function resizeCanvasPreserveDrawing() {
+      const rect = card.getBoundingClientRect();
+      const targetW = Math.max(1, Math.floor(rect.width));
+      const targetH = Math.max(1, Math.floor(rect.height));
+
+      if (canvas.width === targetW && canvas.height === targetH) return;
+
+      const snapshot = document.createElement("canvas");
+      snapshot.width = canvas.width || targetW;
+      snapshot.height = canvas.height || targetH;
+      const snapCtx = snapshot.getContext("2d");
+      snapCtx.drawImage(canvas, 0, 0);
+
+      canvas.width = targetW;
+      canvas.height = targetH;
+
+      fillWhiteBackground();
+      if (snapshot.width > 0 && snapshot.height > 0) {
+        ctx.drawImage(snapshot, 0, 0);
+      }
+    }
+
+    function setTool(tool) {
+      currentTool = tool;
+      toolBrushBtn.classList.toggle("active", tool === "brush");
+      toolEraserBtn.classList.toggle("active", tool === "eraser");
+      statusTool.textContent = `Herramienta: ${tool === "brush" ? "Pincel" : "Borrador"}`;
+    }
+
+    function getCanvasPoint(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+    function drawSegment(fromX, fromY, toX, toY) {
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = Number(sizeSlider.value);
+
+      if (currentTool === "eraser") {
+        ctx.strokeStyle = "#ffffff";
+      } else {
+        ctx.strokeStyle = colorPicker.value;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      const pt = getCanvasPoint(e);
+      isDrawing = true;
+      lastX = pt.x;
+      lastY = pt.y;
+      drawSegment(lastX, lastY, pt.x + 0.01, pt.y + 0.01);
+      canvas.setPointerCapture(e.pointerId);
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      const pt = getCanvasPoint(e);
+      statusCoords.textContent = `x: ${Math.round(pt.x)}, y: ${Math.round(pt.y)}`;
+      if (!isDrawing) return;
+      drawSegment(lastX, lastY, pt.x, pt.y);
+      lastX = pt.x;
+      lastY = pt.y;
+    });
+
+    const stopDrawing = (e) => {
+      if (!isDrawing) return;
+      isDrawing = false;
+      if (e && e.pointerId !== undefined && canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
+    };
+
+    canvas.addEventListener("pointerup", stopDrawing);
+    canvas.addEventListener("pointercancel", stopDrawing);
+
+    toolBrushBtn.addEventListener("click", () => setTool("brush"));
+    toolEraserBtn.addEventListener("click", () => setTool("eraser"));
+
+    sizeSlider.addEventListener("input", () => {
+      sizeLabel.textContent = `${sizeSlider.value}px`;
+    });
+
+    btnClear.addEventListener("click", () => {
+      fillWhiteBackground();
+    });
+
+    btnSave.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "dibujo-win11.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+
+    window.addEventListener("resize", resizeCanvasPreserveDrawing);
+
+    resizeCanvasPreserveDrawing();
+    fillWhiteBackground();
+  </script>
+</body>
+</html>

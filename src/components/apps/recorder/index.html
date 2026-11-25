@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grabadora de sonidos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .rec-shell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Panel principal de grabación */
+    .rec-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      padding: 14px 16px;
+    }
+
+    .rec-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .rec-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .rec-status-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .rec-status-pill.live {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .rec-wave-box {
+      flex: 1;
+      min-height: 110px;
+      margin: 12px 0;
+      border-radius: 10px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #rec-canvas {
+      width: 100%;
+      height: 68px;
+      display: block;
+    }
+
+    .rec-timer {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 1px;
+    }
+
+    .rec-hint {
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    .rec-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .rec-main-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid #fecaca;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.28);
+      transition: transform 0.12s ease, background 0.14s ease;
+    }
+
+    .rec-main-btn:hover {
+      background: #b91c1c;
+      transform: scale(1.04);
+    }
+
+    .rec-main-btn.recording {
+      border-radius: 14px;
+      background: #0f172a;
+      border-color: #cbd5e1;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
+    }
+
+    .rec-sec-btn {
+      padding: 7px 12px;
+      border-radius: 7px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .rec-sec-btn:hover {
+      background: #e2e8f0;
+    }
+
+    /* Lista lateral de grabaciones */
+    .rec-list-pane {
+      width: 220px;
+      min-width: 170px;
+      background: #f8fafc;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    .rec-list-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      padding: 0 4px;
+    }
+
+    .rec-item {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rec-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .rec-item-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rec-item-dur {
+      font-size: 10.5px;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .rec-item audio {
+      width: 100%;
+      height: 28px;
+    }
+
+    .rec-item-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .rec-tiny-btn {
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .rec-tiny-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .rec-empty {
+      font-size: 11.5px;
+      color: #64748b;
+      text-align: center;
+      padding: 16px 8px;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="rec-shell">
+    <section class="rec-main">
+      <header class="rec-topbar">
+        <span class="rec-title">Grabadora de sonidos</span>
+        <span id="rec-pill" class="rec-status-pill">Listo</span>
+      </header>
+
+      <div class="rec-wave-box">
+        <div id="rec-timer" class="rec-timer">00:00.0</div>
+        <canvas id="rec-canvas" width="420" height="68"></canvas>
+        <div id="rec-hint" class="rec-hint">Pulsa el botón rojo para grabar desde el micrófono</div>
+      </div>
+
+      <div class="rec-controls">
+        <button id="rec-sample-btn" class="rec-sec-btn" type="button">Nota demo</button>
+        <button id="rec-main-btn" class="rec-main-btn" type="button" title="Grabar / Detener">REC</button>
+      </div>
+    </section>
+
+    <aside class="rec-list-pane">
+      <div class="rec-list-header">Grabaciones (<span id="rec-count">0</span>)</div>
+      <div id="rec-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </aside>
+  </div>
+
+  <script>
+    const mainBtn = document.getElementById("rec-main-btn");
+    const sampleBtn = document.getElementById("rec-sample-btn");
+    const pillEl = document.getElementById("rec-pill");
+    const timerEl = document.getElementById("rec-timer");
+    const hintEl = document.getElementById("rec-hint");
+    const canvas = document.getElementById("rec-canvas");
+    const ctx = canvas.getContext("2d");
+    const listEl = document.getElementById("rec-list");
+    const countEl = document.getElementById("rec-count");
+
+    let mediaRecorder = null;
+    let mediaStream = null;
+    let audioCtx = null;
+    let analyser = null;
+    let chunks = [];
+    let isRecording = false;
+    let startTime = 0;
+    let elapsedMs = 0;
+    let rafId = null;
+    let recordings = [];
+
+    function formatDuration(ms) {
+      const totalTenths = Math.floor(ms / 100);
+      const tenths = totalTenths % 10;
+      const totalSec = Math.floor(totalTenths / 10);
+      const sec = totalSec % 60;
+      const min = Math.floor(totalSec / 60);
+      return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}.${tenths}`;
+    }
+
+    function drawIdleWave() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const midY = canvas.height / 2;
+      for (let x = 0; x < canvas.width; x += 4) {
+        const amp = isRecording ? Math.sin(x * 0.06 + performance.now() * 0.012) * 18 : 2;
+        const y = midY + amp;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function drawLoop() {
+      if (!isRecording) {
+        drawIdleWave();
+        return;
+      }
+
+      elapsedMs = performance.now() - startTime;
+      timerEl.textContent = formatDuration(elapsedMs);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (analyser) {
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        const bars = 48;
+        const barW = canvas.width / bars;
+        for (let i = 0; i < bars; i++) {
+          const val = data[i % data.length] / 255;
+          const h = Math.max(4, val * (canvas.height - 10));
+          ctx.fillStyle = val > 0.65 ? "#f87171" : "#38bdf8";
+          ctx.fillRect(i * barW + 2, (canvas.height - h) / 2, Math.max(2, barW - 4), h);
+        }
+      } else {
+        drawIdleWave();
+      }
+
+      rafId = requestAnimationFrame(drawLoop);
+    }
+
+    function addRecordingItem(name, durationStr, url, ext) {
+      recordings.unshift({
+        id: `rec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name,
+        durationStr,
+        url,
+        ext
+      });
+      renderList();
+    }
+
+    function renderList() {
+      countEl.textContent = String(recordings.length);
+      if (recordings.length === 0) {
+        listEl.innerHTML = `<div class="rec-empty">Aún no hay grabaciones.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = "";
+      recordings.forEach((rec) => {
+        const card = document.createElement("div");
+        card.className = "rec-item";
+
+        const top = document.createElement("div");
+        top.className = "rec-item-top";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "rec-item-name";
+        nameSpan.textContent = rec.name;
+
+        const durSpan = document.createElement("span");
+        durSpan.className = "rec-item-dur";
+        durSpan.textContent = rec.durationStr;
+
+        top.appendChild(nameSpan);
+        top.appendChild(durSpan);
+
+        const audio = document.createElement("audio");
+        audio.controls = true;
+        audio.src = rec.url;
+
+        const actions = document.createElement("div");
+        actions.className = "rec-item-actions";
+
+        const dlLink = document.createElement("a");
+        dlLink.className = "rec-tiny-btn";
+        dlLink.href = rec.url;
+        dlLink.download = `${rec.name}.${rec.ext || "webm"}`;
+        dlLink.textContent = "Guardar";
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "rec-tiny-btn";
+        delBtn.textContent = "Borrar";
+        delBtn.addEventListener("click", () => {
+          recordings = recordings.filter((item) => item.id !== rec.id);
+          renderList();
+        });
+
+        actions.appendChild(dlLink);
+        actions.appendChild(delBtn);
+
+        card.appendChild(top);
+        card.appendChild(audio);
+        card.appendChild(actions);
+        listEl.appendChild(card);
+      });
+    }
+
+    async function startRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") {
+        hintEl.textContent = "Micrófono no disponible aquí; usa 'Nota demo' para probar.";
+        return;
+      }
+
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) {
+          audioCtx = new Ctx();
+          const src = audioCtx.createMediaStreamSource(mediaStream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 128;
+          src.connect(analyser);
+        }
+
+        chunks = [];
+        mediaRecorder = new MediaRecorder(mediaStream);
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunks, { type: mediaRecorder.mimeType || "audio/webm" });
+          const url = URL.createObjectURL(blob);
+          const idx = recordings.length + 1;
+          addRecordingItem(`Grabación ${idx}`, formatDuration(elapsedMs), url, "webm");
+          if (mediaStream) {
+            mediaStream.getTracks().forEach((t) => t.stop());
+            mediaStream = null;
+          }
+          if (audioCtx) {
+            audioCtx.close().catch(() => {});
+            audioCtx = null;
+            analyser = null;
+          }
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        startTime = performance.now();
+        elapsedMs = 0;
+        mainBtn.textContent = "■";
+        mainBtn.classList.add("recording");
+        pillEl.textContent = "Grabando";
+        pillEl.classList.add("live");
+        hintEl.textContent = "Habla ahora; pulsa detener cuando termines";
+        rafId = requestAnimationFrame(drawLoop);
+      } catch {
+        hintEl.textContent = "Permiso de micrófono denegado o bloqueado. Prueba 'Nota demo'.";
+      }
+    }
+
+    function stopRecording() {
+      isRecording = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      mainBtn.textContent = "REC";
+      mainBtn.classList.remove("recording");
+      pillEl.textContent = "Listo";
+      pillEl.classList.remove("live");
+      hintEl.textContent = "Pulsa el botón rojo para grabar desde el micrófono";
+      drawIdleWave();
+
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
+    }
+
+    function createDemoWavBlob() {
+      const sampleRate = 8000;
+      const durationSec = 1.2;
+      const numSamples = Math.floor(sampleRate * durationSec);
+      const buffer = new ArrayBuffer(44 + numSamples * 2);
+      const view = new DataView(buffer);
+
+      const writeStr = (off, str) => {
+        for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i));
+      };
+
+      writeStr(0, "RIFF");
+      view.setUint32(4, 36 + numSamples * 2, true);
+      writeStr(8, "WAVE");
+      writeStr(12, "fmt ");
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeStr(36, "data");
+      view.setUint32(40, numSamples * 2, true);
+
+      const freqs = [440, 554.37, 659.25];
+      for (let i = 0; i < numSamples; i++) {
+        const t = i / sampleRate;
+        const f = freqs[Math.floor(t * 2.5) % freqs.length];
+        const env = Math.sin(Math.min(1, t / durationSec) * Math.PI);
+        const sample = Math.sin(2 * Math.PI * f * t) * 0.25 * env;
+        view.setInt16(44 + i * 2, sample * 32767, true);
+      }
+
+      return new Blob([buffer], { type: "audio/wav" });
+    }
+
+    mainBtn.addEventListener("click", () => {
+      if (isRecording) stopRecording();
+      else startRecording();
+    });
+
+    sampleBtn.addEventListener("click", () => {
+      const blob = createDemoWavBlob();
+      const url = URL.createObjectURL(blob);
+      const idx = recordings.length + 1;
+      addRecordingItem(`Nota demo ${idx}`, "00:01.2", url, "wav");
+    });
+
+    drawIdleWave();
+    renderList();
+  </script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #0c0c0c;
+      color: #cccccc;
+      font-family: "Cascadia Mono", "Consolas", "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.45;
+      overflow: hidden;
+    }
+
+    .term-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      background: #0c0c0c;
+    }
+
+    .term-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 12px;
+      background: #181818;
+      border-bottom: 1px solid #2b2b2b;
+      user-select: none;
+    }
+
+    .term-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      background: #0c0c0c;
+      border: 1px solid #2d2d2d;
+      color: #f3f3f3;
+      font-size: 11.5px;
+    }
+
+    .term-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .term-btn {
+      padding: 3px 9px;
+      border-radius: 5px;
+      border: 1px solid #333333;
+      background: #222222;
+      color: #e5e5e5;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .term-btn:hover {
+      background: #303030;
+    }
+
+    .term-screen {
+      flex: 1;
+      min-height: 0;
+      padding: 12px 14px;
+      overflow-y: auto;
+      cursor: text;
+    }
+
+    .term-line {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 4px;
+    }
+
+    .term-muted {
+      color: #8c8c8c;
+    }
+
+    .term-accent {
+      color: #4cc2ff;
+    }
+
+    .term-success {
+      color: #6ccb5f;
+    }
+
+    .term-error {
+      color: #ff6b6b;
+    }
+
+    .term-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .term-prompt {
+      color: #4cc2ff;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #term-input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 13px;
+      caret-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="term-shell">
+    <div class="term-topbar">
+      <div class="term-tab">
+        <span>&gt;_</span>
+        <span>Win11 Terminal</span>
+      </div>
+      <div class="term-actions">
+        <button id="btn-help" class="term-btn" type="button">help</button>
+        <button id="btn-clear" class="term-btn" type="button">clear</button>
+      </div>
+    </div>
+
+    <div id="term-screen" class="term-screen">
+      <div id="term-output"></div>
+      <div class="term-input-row">
+        <span class="term-prompt" id="term-prompt">C:\Users\Usuario&gt;</span>
+        <input id="term-input" type="text" autocomplete="off" spellcheck="false" autofocus>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const outputEl = document.getElementById("term-output");
+    const inputEl = document.getElementById("term-input");
+    const screenEl = document.getElementById("term-screen");
+    const btnHelp = document.getElementById("btn-help");
+    const btnClear = document.getElementById("btn-clear");
+
+    const PROMPT_TEXT = "C:\\Users\\Usuario>";
+    const COMMANDS = ["help", "clear", "cls", "ver", "echo", "date", "time", "whoami", "dir", "ls", "open"];
+    const KNOWN_APPS = [
+      "explorer", "edge", "notepad", "paint", "calculator",
+      "store", "terminal", "weather", "photos", "outlook",
+      "media-player", "xbox", "recorder", "maps", "notes",
+      "task-manager", "settings"
+    ];
+
+    let history = [];
+    let historyIdx = -1;
+
+    function appendLine(text, className = "") {
+      const div = document.createElement("div");
+      div.className = `term-line ${className}`.trim();
+      div.textContent = text;
+      outputEl.appendChild(div);
+      screenEl.scrollTop = screenEl.scrollHeight;
+    }
+
+    function printBanner() {
+      appendLine("Win11 in HTML Terminal [Versión 11.2026]", "term-accent");
+      appendLine("(c) Win11 HTML Workspace. Escribe 'help' para ver comandos.", "term-muted");
+      appendLine("");
+    }
+
+    function runCommand(raw) {
+      const trimmed = raw.trim();
+      appendLine(`${PROMPT_TEXT} ${raw}`);
+
+      if (!trimmed) {
+        screenEl.scrollTop = screenEl.scrollHeight;
+        return;
+      }
+
+      history.push(raw);
+      historyIdx = history.length;
+
+      const [cmdRaw, ...rest] = trimmed.split(/\s+/);
+      const cmd = cmdRaw.toLowerCase();
+      const argStr = trimmed.slice(cmdRaw.length).trim();
+
+      if (cmd === "help") {
+        appendLine("Comandos disponibles:", "term-accent");
+        appendLine("  help          Muestra esta ayuda");
+        appendLine("  clear / cls   Limpia la pantalla");
+        appendLine("  ver           Muestra la versión del sistema");
+        appendLine("  echo <texto>  Imprime un mensaje");
+        appendLine("  date / time   Muestra fecha o hora actual");
+        appendLine("  whoami        Muestra el usuario actual");
+        appendLine("  dir / ls      Lista carpetas y apps del sistema");
+        appendLine("  open <app>    Abre una app del escritorio (ej: open paint)");
+      } else if (cmd === "clear" || cmd === "cls") {
+        outputEl.innerHTML = "";
+      } else if (cmd === "ver") {
+        appendLine("Microsoft Windows 11 in HTML [Build 26200.2026]");
+      } else if (cmd === "echo") {
+        appendLine(argStr);
+      } else if (cmd === "date") {
+        appendLine(new Date().toLocaleDateString("es-AR", { dateStyle: "full" }));
+      } else if (cmd === "time") {
+        appendLine(new Date().toLocaleTimeString("es-AR", { timeStyle: "medium" }));
+      } else if (cmd === "whoami") {
+        appendLine("win11-html\\usuario");
+      } else if (cmd === "dir" || cmd === "ls") {
+        appendLine("Directorio de C:\\Users\\Usuario", "term-muted");
+        appendLine("  <DIR>          Desktop");
+        appendLine("  <DIR>          Documents");
+        appendLine("  <DIR>          Downloads");
+        appendLine("  <DIR>          Pictures");
+        appendLine(`  Apps (${KNOWN_APPS.length}): ${KNOWN_APPS.join(", ")}`, "term-muted");
+      } else if (cmd === "open") {
+        const target = (rest[0] || "").toLowerCase();
+        if (!target) {
+          appendLine("Uso: open <nombre-app> (ej: open calculator)", "term-error");
+        } else if (!KNOWN_APPS.includes(target)) {
+          appendLine(`Aplicación no encontrada: '${target}'`, "term-error");
+        } else {
+          try {
+            if (window.parent && typeof window.parent.openWin11App === "function") {
+              window.parent.openWin11App(target);
+              appendLine(`Abriendo '${target}'...`, "term-success");
+            } else {
+              appendLine(`Comando 'open ${target}' listo (sin ventana padre activa).`, "term-muted");
+            }
+          } catch {
+            appendLine(`No se pudo comunicar con la ventana principal para '${target}'.`, "term-error");
+          }
+        }
+      } else {
+        appendLine(`'${cmdRaw}' no se reconoce como un comando interno o externo.`, "term-error");
+      }
+
+      screenEl.scrollTop = screenEl.scrollHeight;
+    }
+
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const val = inputEl.value;
+        inputEl.value = "";
+        runCommand(val);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (history.length > 0 && historyIdx > 0) {
+          historyIdx -= 1;
+          inputEl.value = history[historyIdx];
+        }
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (history.length > 0) {
+          if (historyIdx < history.length - 1) {
+            historyIdx += 1;
+            inputEl.value = history[historyIdx];
+          } else {
+            historyIdx = history.length;
+            inputEl.value = "";
+          }
+        }
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        const cur = inputEl.value.trim().toLowerCase();
+        if (!cur) return;
+        const match = COMMANDS.find((c) => c.startsWith(cur));
+        if (match) {
+          inputEl.value = match + (match === "echo" || match === "open" ? " " : "");
+        }
+      }
+    });
+
+    screenEl.addEventListener("click", () => {
+      inputEl.focus();
+    });
+
+    btnHelp.addEventListener("click", () => {
+      runCommand("help");
+      inputEl.focus();
+    });
+
+    btnClear.addEventListener("click", () => {
+      outputEl.innerHTML = "";
+      inputEl.focus();
+    });
+
+    printBanner();
+    inputEl.focus();
+  </script>
+</body>
+</html>

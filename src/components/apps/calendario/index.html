@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendario</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .cal-shell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Columna principal del calendario */
+    .cal-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      padding: 12px 14px;
+    }
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cal-month-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      text-transform: capitalize;
+    }
+
+    .cal-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .c-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .c-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .c-btn.primary {
+      background: #0067c0;
+      border-color: #0067c0;
+      color: #ffffff;
+    }
+
+    .c-btn.primary:hover {
+      background: #00559f;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .cal-weekday {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      padding: 4px 0;
+    }
+
+    .cal-days-grid {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .cal-day-cell {
+      border: 1px solid #eef2f6;
+      border-radius: 7px;
+      background: #ffffff;
+      padding: 5px 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: border-color 0.12s ease, background 0.12s ease;
+      min-height: 0;
+    }
+
+    .cal-day-cell:hover {
+      background: #f8fafc;
+      border-color: #93c5fd;
+    }
+
+    .cal-day-cell.other-month {
+      background: #f8fafc;
+      color: #94a3b8;
+    }
+
+    .cal-day-cell.today .cal-day-num {
+      background: #0067c0;
+      color: #ffffff;
+      border-radius: 999px;
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .cal-day-cell.selected {
+      border-color: #0067c0;
+      background: #eff6ff;
+      box-shadow: inset 0 0 0 1px #0067c0;
+    }
+
+    .cal-day-num {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 22px;
+    }
+
+    .cal-dots {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-wrap: wrap;
+      min-height: 7px;
+    }
+
+    .cal-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #0067c0;
+    }
+
+    /* Panel lateral de agenda del día */
+    .cal-agenda {
+      width: 240px;
+      min-width: 195px;
+      background: #f8fafc;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    .agenda-date-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      text-transform: capitalize;
+    }
+
+    .agenda-sub {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .agenda-form {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .agenda-form input,
+    .agenda-form select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-family: inherit;
+      font-size: 11.5px;
+      color: #0f172a;
+      background: #ffffff;
+      outline: none;
+      user-select: text;
+    }
+
+    .agenda-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .agenda-event-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #0067c0;
+      border-radius: 7px;
+      padding: 7px 9px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .agenda-event-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+      word-break: break-word;
+    }
+
+    .agenda-event-meta {
+      font-size: 10.5px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .agenda-del-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0 2px;
+      line-height: 1;
+    }
+
+    .agenda-del-btn:hover {
+      color: #dc2626;
+    }
+
+    .agenda-empty {
+      font-size: 11.5px;
+      color: #64748b;
+      text-align: center;
+      padding: 14px 8px;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="cal-shell">
+    <section class="cal-main">
+      <header class="cal-header">
+        <div id="cal-month-title" class="cal-month-title">Mes Año</div>
+        <div class="cal-nav-group">
+          <button id="btn-prev-month" class="c-btn" type="button" title="Mes anterior">◀</button>
+          <button id="btn-today" class="c-btn" type="button">Hoy</button>
+          <button id="btn-next-month" class="c-btn" type="button" title="Mes siguiente">▶</button>
+        </div>
+      </header>
+
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Lun</div>
+        <div class="cal-weekday">Mar</div>
+        <div class="cal-weekday">Mié</div>
+        <div class="cal-weekday">Jue</div>
+        <div class="cal-weekday">Vie</div>
+        <div class="cal-weekday">Sáb</div>
+        <div class="cal-weekday">Dom</div>
+      </div>
+
+      <div id="cal-days-grid" class="cal-days-grid"></div>
+    </section>
+
+    <aside class="cal-agenda">
+      <div>
+        <div id="agenda-date-title" class="agenda-date-title">Fecha</div>
+        <div id="agenda-sub" class="agenda-sub">Eventos programados</div>
+      </div>
+
+      <form id="agenda-form" class="agenda-form">
+        <input id="ev-title" type="text" placeholder="Nuevo evento..." required>
+        <div style="display: flex; gap: 6px;">
+          <input id="ev-time" type="time" value="10:00">
+          <select id="ev-tag">
+            <option value="General">General</option>
+            <option value="Proyecto">Proyecto</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </div>
+        <button class="c-btn primary" type="submit">+ Agregar evento</button>
+      </form>
+
+      <div id="agenda-list" class="agenda-list"></div>
+    </aside>
+  </div>
+
+  <script>
+    const CAL_STORAGE_KEY = "win11_calendario_events_v1";
+
+    function pad2(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function toDateKey(dateObj) {
+      return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth() + 1)}-${pad2(dateObj.getDate())}`;
+    }
+
+    function parseDateKey(key) {
+      const [y, m, d] = key.split("-").map(Number);
+      return new Date(y, (m || 1) - 1, d || 1);
+    }
+
+    const now = new Date();
+    const todayKey = toDateKey(now);
+
+    const DEFAULT_EVENTS = [
+      {
+        id: "ev-1",
+        dateKey: todayKey,
+        title: "Avance en Win11 in HTML",
+        time: "17:30",
+        tag: "Proyecto"
+      },
+      {
+        id: "ev-2",
+        dateKey: toDateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)),
+        title: "Revisar nuevas apps del escritorio",
+        time: "11:00",
+        tag: "General"
+      }
+    ];
+
+    function loadEvents() {
+      try {
+        const raw = localStorage.getItem(CAL_STORAGE_KEY);
+        if (!raw) return [...DEFAULT_EVENTS];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [...DEFAULT_EVENTS];
+      } catch {
+        return [...DEFAULT_EVENTS];
+      }
+    }
+
+    let events = loadEvents();
+    let viewYear = now.getFullYear();
+    let viewMonth = now.getMonth();
+    let selectedKey = todayKey;
+
+    function saveEvents() {
+      try {
+        localStorage.setItem(CAL_STORAGE_KEY, JSON.stringify(events));
+      } catch {}
+    }
+
+    function tagColor(tag) {
+      if (tag === "Proyecto") return "#0067c0";
+      if (tag === "Personal") return "#0f766e";
+      return "#6366f1";
+    }
+
+    function renderCalendar() {
+      const monthTitleEl = document.getElementById("cal-month-title");
+      const gridEl = document.getElementById("cal-days-grid");
+
+      const monthDate = new Date(viewYear, viewMonth, 1);
+      monthTitleEl.textContent = monthDate.toLocaleDateString("es-AR", {
+        month: "long",
+        year: "numeric"
+      });
+
+      const firstDayMondayBased = (monthDate.getDay() + 6) % 7;
+      const startCellDate = new Date(viewYear, viewMonth, 1 - firstDayMondayBased);
+
+      gridEl.innerHTML = "";
+      for (let i = 0; i < 42; i++) {
+        const cellDate = new Date(
+          startCellDate.getFullYear(),
+          startCellDate.getMonth(),
+          startCellDate.getDate() + i
+        );
+        const key = toDateKey(cellDate);
+        const isCurrentMonth = cellDate.getMonth() === viewMonth;
+        const isToday = key === todayKey;
+        const isSelected = key === selectedKey;
+
+        const dayEvents = events.filter((e) => e.dateKey === key);
+        const dotsHtml = dayEvents
+          .slice(0, 5)
+          .map((e) => `<span class="cal-dot" style="background:${tagColor(e.tag)};"></span>`)
+          .join("");
+
+        const cell = document.createElement("div");
+        cell.className = [
+          "cal-day-cell",
+          !isCurrentMonth ? "other-month" : "",
+          isToday ? "today" : "",
+          isSelected ? "selected" : ""
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        cell.innerHTML = `
+          <span class="cal-day-num">${cellDate.getDate()}</span>
+          <div class="cal-dots">${dotsHtml}</div>
+        `;
+
+        cell.addEventListener("click", () => {
+          selectedKey = key;
+          viewYear = cellDate.getFullYear();
+          viewMonth = cellDate.getMonth();
+          renderAll();
+        });
+
+        gridEl.appendChild(cell);
+      }
+    }
+
+    function renderAgenda() {
+      const dateTitleEl = document.getElementById("agenda-date-title");
+      const subEl = document.getElementById("agenda-sub");
+      const listEl = document.getElementById("agenda-list");
+
+      const selDate = parseDateKey(selectedKey);
+      dateTitleEl.textContent = selDate.toLocaleDateString("es-AR", {
+        weekday: "long",
+        day: "numeric",
+        month: "short"
+      });
+
+      const dayEvents = events
+        .filter((e) => e.dateKey === selectedKey)
+        .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+      subEl.textContent = `${dayEvents.length} ${dayEvents.length === 1 ? "evento" : "eventos"}`;
+
+      if (dayEvents.length === 0) {
+        listEl.innerHTML = `<div class="agenda-empty">Sin eventos para este día. Agrega uno arriba.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = "";
+      dayEvents.forEach((ev) => {
+        const card = document.createElement("div");
+        card.className = "agenda-event-card";
+        card.style.borderLeftColor = tagColor(ev.tag);
+
+        const titleSpan = document.createElement("div");
+        titleSpan.className = "agenda-event-title";
+        titleSpan.textContent = ev.title;
+
+        const metaDiv = document.createElement("div");
+        metaDiv.className = "agenda-event-meta";
+        metaDiv.textContent = `${ev.time || "--:--"} · ${ev.tag || "General"}`;
+
+        const textWrap = document.createElement("div");
+        textWrap.appendChild(titleSpan);
+        textWrap.appendChild(metaDiv);
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "agenda-del-btn";
+        delBtn.type = "button";
+        delBtn.title = "Eliminar evento";
+        delBtn.textContent = "✕";
+        delBtn.addEventListener("click", () => {
+          events = events.filter((item) => item.id !== ev.id);
+          saveEvents();
+          renderAll();
+        });
+
+        card.appendChild(textWrap);
+        card.appendChild(delBtn);
+        listEl.appendChild(card);
+      });
+    }
+
+    function renderAll() {
+      renderCalendar();
+      renderAgenda();
+    }
+
+    document.getElementById("btn-prev-month").addEventListener("click", () => {
+      viewMonth -= 1;
+      if (viewMonth < 0) {
+        viewMonth = 11;
+        viewYear -= 1;
+      }
+      renderCalendar();
+    });
+
+    document.getElementById("btn-next-month").addEventListener("click", () => {
+      viewMonth += 1;
+      if (viewMonth > 11) {
+        viewMonth = 0;
+        viewYear += 1;
+      }
+      renderCalendar();
+    });
+
+    document.getElementById("btn-today").addEventListener("click", () => {
+      const freshNow = new Date();
+      viewYear = freshNow.getFullYear();
+      viewMonth = freshNow.getMonth();
+      selectedKey = toDateKey(freshNow);
+      renderAll();
+    });
+
+    document.getElementById("agenda-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const titleInput = document.getElementById("ev-title");
+      const timeInput = document.getElementById("ev-time");
+      const tagSelect = document.getElementById("ev-tag");
+
+      const titleVal = titleInput.value.trim();
+      if (!titleVal) return;
+
+      events.push({
+        id: `ev-${Date.now()}`,
+        dateKey: selectedKey,
+        title: titleVal,
+        time: timeInput.value || "10:00",
+        tag: tagSelect.value || "General"
+      });
+
+      saveEvents();
+      titleInput.value = "";
+      renderAll();
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>

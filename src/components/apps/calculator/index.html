@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #f3f6fa;
+      color: #0f172a;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .calc-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .calc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px;
+    }
+
+    .calc-mode {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .calc-hint {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .calc-display {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 4px;
+      min-height: 86px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .calc-expression {
+      font-size: 12px;
+      color: #64748b;
+      min-height: 16px;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .calc-value {
+      font-size: 32px;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.1;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .calc-keypad {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 6px;
+    }
+
+    .calc-btn {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+    }
+
+    .calc-btn:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .calc-btn:active {
+      transform: scale(0.97);
+    }
+
+    .calc-btn.op {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .calc-btn.op:hover {
+      background: #e2e8f0;
+    }
+
+    .calc-btn.op.active-op {
+      background: #dbeafe;
+      border-color: #3b82f6;
+      color: #1d4ed8;
+    }
+
+    .calc-btn.equals {
+      background: #0067c0;
+      border-color: #0067c0;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .calc-btn.equals:hover {
+      background: #00559f;
+    }
+  </style>
+</head>
+<body>
+  <div class="calc-shell">
+    <div class="calc-header">
+      <span class="calc-mode">Estándar</span>
+      <span class="calc-hint">Teclado soportado</span>
+    </div>
+
+    <div class="calc-display">
+      <div id="calc-expression" class="calc-expression"></div>
+      <div id="calc-value" class="calc-value">0</div>
+    </div>
+
+    <div class="calc-keypad">
+      <button class="calc-btn op" type="button" data-action="percent">%</button>
+      <button class="calc-btn op" type="button" data-action="ce">CE</button>
+      <button class="calc-btn op" type="button" data-action="clear">C</button>
+      <button class="calc-btn op" type="button" data-action="backspace">⌫</button>
+
+      <button class="calc-btn op" type="button" data-action="reciprocal">1/x</button>
+      <button class="calc-btn op" type="button" data-action="square">x²</button>
+      <button class="calc-btn op" type="button" data-action="sqrt">√x</button>
+      <button class="calc-btn op" type="button" data-operator="/">÷</button>
+
+      <button class="calc-btn" type="button" data-digit="7">7</button>
+      <button class="calc-btn" type="button" data-digit="8">8</button>
+      <button class="calc-btn" type="button" data-digit="9">9</button>
+      <button class="calc-btn op" type="button" data-operator="*">×</button>
+
+      <button class="calc-btn" type="button" data-digit="4">4</button>
+      <button class="calc-btn" type="button" data-digit="5">5</button>
+      <button class="calc-btn" type="button" data-digit="6">6</button>
+      <button class="calc-btn op" type="button" data-operator="-">−</button>
+
+      <button class="calc-btn" type="button" data-digit="1">1</button>
+      <button class="calc-btn" type="button" data-digit="2">2</button>
+      <button class="calc-btn" type="button" data-digit="3">3</button>
+      <button class="calc-btn op" type="button" data-operator="+">+</button>
+
+      <button class="calc-btn" type="button" data-action="negate">±</button>
+      <button class="calc-btn" type="button" data-digit="0">0</button>
+      <button class="calc-btn" type="button" data-action="decimal">.</button>
+      <button class="calc-btn equals" type="button" data-action="equals">=</button>
+    </div>
+  </div>
+
+  <script>
+    const valueEl = document.getElementById("calc-value");
+    const exprEl = document.getElementById("calc-expression");
+    const opButtons = Array.from(document.querySelectorAll("[data-operator]"));
+
+    let currentInput = "0";
+    let previousValue = null;
+    let operator = null;
+    let waitingForNewNumber = false;
+    let justEvaluated = false;
+
+    const OP_SYMBOLS = {
+      "+": "+",
+      "-": "−",
+      "*": "×",
+      "/": "÷"
+    };
+
+    function formatNumber(num) {
+      if (!Number.isFinite(num)) return "Error";
+      const rounded = Number(num.toPrecision(12));
+      return String(rounded);
+    }
+
+    function updateDisplay() {
+      valueEl.textContent = currentInput;
+      if (previousValue !== null && operator) {
+        exprEl.textContent = `${formatNumber(previousValue)} ${OP_SYMBOLS[operator]}`;
+      } else if (!justEvaluated) {
+        exprEl.textContent = "";
+      }
+
+      opButtons.forEach((btn) => {
+        const isActive = !waitingForNewNumber && operator === btn.dataset.operator;
+        btn.classList.toggle("active-op", isActive);
+      });
+    }
+
+    function inputDigit(digit) {
+      if (currentInput === "Error") {
+        clearAll();
+      }
+      if (waitingForNewNumber || justEvaluated) {
+        currentInput = digit;
+        waitingForNewNumber = false;
+        justEvaluated = false;
+      } else {
+        currentInput = currentInput === "0" ? digit : currentInput + digit;
+      }
+      updateDisplay();
+    }
+
+    function inputDecimal() {
+      if (currentInput === "Error") {
+        clearAll();
+      }
+      if (waitingForNewNumber || justEvaluated) {
+        currentInput = "0.";
+        waitingForNewNumber = false;
+        justEvaluated = false;
+      } else if (!currentInput.includes(".")) {
+        currentInput += ".";
+      }
+      updateDisplay();
+    }
+
+    function compute(a, b, op) {
+      switch (op) {
+        case "+":
+          return a + b;
+        case "-":
+          return a - b;
+        case "*":
+          return a * b;
+        case "/":
+          return b === 0 ? NaN : a / b;
+        default:
+          return b;
+      }
+    }
+
+    function setOperator(nextOp) {
+      if (currentInput === "Error") return;
+      const inputVal = parseFloat(currentInput);
+
+      if (previousValue === null) {
+        previousValue = inputVal;
+      } else if (!waitingForNewNumber && operator) {
+        const result = compute(previousValue, inputVal, operator);
+        if (!Number.isFinite(result)) {
+          currentInput = "Error";
+          previousValue = null;
+          operator = null;
+          waitingForNewNumber = false;
+          justEvaluated = false;
+          exprEl.textContent = "División por cero";
+          updateDisplay();
+          return;
+        }
+        previousValue = result;
+        currentInput = formatNumber(result);
+      }
+
+      operator = nextOp;
+      waitingForNewNumber = true;
+      justEvaluated = false;
+      updateDisplay();
+    }
+
+    function evaluateEquals() {
+      if (currentInput === "Error" || previousValue === null || !operator) return;
+      const inputVal = parseFloat(currentInput);
+      const exprText = `${formatNumber(previousValue)} ${OP_SYMBOLS[operator]} ${formatNumber(inputVal)} =`;
+      const result = compute(previousValue, inputVal, operator);
+
+      if (!Number.isFinite(result)) {
+        currentInput = "Error";
+        exprEl.textContent = "División por cero";
+      } else {
+        currentInput = formatNumber(result);
+        exprEl.textContent = exprText;
+      }
+
+      previousValue = null;
+      operator = null;
+      waitingForNewNumber = false;
+      justEvaluated = true;
+      updateDisplay();
+    }
+
+    function clearEntry() {
+      currentInput = "0";
+      justEvaluated = false;
+      updateDisplay();
+    }
+
+    function clearAll() {
+      currentInput = "0";
+      previousValue = null;
+      operator = null;
+      waitingForNewNumber = false;
+      justEvaluated = false;
+      exprEl.textContent = "";
+      updateDisplay();
+    }
+
+    function backspace() {
+      if (currentInput === "Error" || justEvaluated) {
+        clearAll();
+        return;
+      }
+      if (waitingForNewNumber) return;
+      if (currentInput.length <= 1 || (currentInput.length === 2 && currentInput.startsWith("-"))) {
+        currentInput = "0";
+      } else {
+        currentInput = currentInput.slice(0, -1);
+      }
+      updateDisplay();
+    }
+
+    function negate() {
+      if (currentInput === "Error" || currentInput === "0") return;
+      currentInput = currentInput.startsWith("-") ? currentInput.slice(1) : `-${currentInput}`;
+      updateDisplay();
+    }
+
+    function applyUnary(fn, labelPrefix) {
+      if (currentInput === "Error") return;
+      const val = parseFloat(currentInput);
+      const res = fn(val);
+      if (!Number.isFinite(res)) {
+        currentInput = "Error";
+        exprEl.textContent = "Entrada no válida";
+      } else {
+        exprEl.textContent = `${labelPrefix}(${formatNumber(val)})`;
+        currentInput = formatNumber(res);
+      }
+      justEvaluated = true;
+      updateDisplay();
+    }
+
+    document.querySelectorAll("[data-digit]").forEach((btn) => {
+      btn.addEventListener("click", () => inputDigit(btn.dataset.digit));
+    });
+
+    opButtons.forEach((btn) => {
+      btn.addEventListener("click", () => setOperator(btn.dataset.operator));
+    });
+
+    document.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.action;
+        if (action === "clear") clearAll();
+        else if (action === "ce") clearEntry();
+        else if (action === "backspace") backspace();
+        else if (action === "decimal") inputDecimal();
+        else if (action === "equals") evaluateEquals();
+        else if (action === "negate") negate();
+        else if (action === "percent") {
+          const val = parseFloat(currentInput);
+          const base = previousValue !== null ? (previousValue * val) / 100 : val / 100;
+          currentInput = formatNumber(base);
+          justEvaluated = true;
+          updateDisplay();
+        } else if (action === "reciprocal") {
+          applyUnary((x) => (x === 0 ? NaN : 1 / x), "1/");
+        } else if (action === "square") {
+          applyUnary((x) => x * x, "sqr");
+        } else if (action === "sqrt") {
+          applyUnary((x) => (x < 0 ? NaN : Math.sqrt(x)), "√");
+        }
+      });
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key >= "0" && e.key <= "9") {
+        inputDigit(e.key);
+      } else if (e.key === "." || e.key === ",") {
+        inputDecimal();
+      } else if (["+", "-", "*", "/"].includes(e.key)) {
+        setOperator(e.key);
+      } else if (e.key === "Enter" || e.key === "=") {
+        e.preventDefault();
+        evaluateEquals();
+      } else if (e.key === "Backspace") {
+        backspace();
+      } else if (e.key === "Escape") {
+        clearAll();
+      }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
