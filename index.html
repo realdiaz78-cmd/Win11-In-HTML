@@ -19,6 +19,184 @@
       user-select: none;
     }
 
+    /* Pantalla de bloqueo (Lock Screen) */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      overflow: hidden;
+      color: #ffffff;
+      background-color: #0b192c;
+      transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, visibility 0.32s ease;
+    }
+
+    #lock-screen.unlocked {
+      transform: translateY(-100%);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .lock-bg-layer {
+      position: absolute;
+      inset: -18px;
+      background-image: url("public/img/lock-screen/wallpaper-for-lock-screen.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(0px) brightness(1);
+      transform: scale(1);
+      transition: filter 0.35s ease, transform 0.35s ease;
+      z-index: 0;
+    }
+
+    #lock-screen.login-mode .lock-bg-layer {
+      filter: blur(18px) brightness(0.68);
+      transform: scale(1.06);
+    }
+
+    .lock-scrim {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 56px 24px 44px;
+      background: linear-gradient(
+        to bottom,
+        rgba(5, 12, 24, 0.25) 0%,
+        rgba(5, 12, 24, 0.15) 55%,
+        rgba(5, 12, 24, 0.55) 100%
+      );
+    }
+
+    .lock-clock-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+      margin-top: 12px;
+      cursor: pointer;
+      transition: opacity 0.22s ease, transform 0.25s ease;
+    }
+
+    #lock-screen.login-mode .lock-clock-box {
+      opacity: 0;
+      transform: translateY(-16px);
+      pointer-events: none;
+      position: absolute;
+    }
+
+    #lock-time {
+      font-size: clamp(56px, 11vw, 96px);
+      font-weight: 600;
+      line-height: 1.02;
+      letter-spacing: -1.5px;
+    }
+
+    #lock-date {
+      font-size: clamp(16px, 2.5vw, 22px);
+      font-weight: 500;
+      margin-top: 10px;
+      opacity: 0.95;
+    }
+
+    .lock-bottom-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.38);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+      transition: opacity 0.22s ease;
+    }
+
+    #lock-screen.login-mode .lock-bottom-hint {
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+    }
+
+    /* Vista de inicio de sesión al tocar el fondo */
+    #lock-login-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+      transform: translateY(-28px);
+      gap: 16px;
+      z-index: 2;
+      animation: lockLoginFadeIn 0.25s ease forwards;
+    }
+
+    #lock-screen.login-mode #lock-login-panel {
+      display: flex;
+    }
+
+    @keyframes lockLoginFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(-28px);
+      }
+    }
+
+    #lock-user-avatar {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.16);
+      border: 2px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+    }
+
+    #lock-user-name {
+      font-size: 22px;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    #lock-signin-btn {
+      padding: 10px 28px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(14px);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+      transition: background 0.16s ease, transform 0.12s ease, border-color 0.16s ease;
+    }
+
+    #lock-signin-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      border-color: rgba(255, 255, 255, 0.55);
+    }
+
+    #lock-signin-btn:active {
+      transform: scale(0.97);
+    }
+
     #desktop {
       position: relative;
       width: 100%;
@@ -1318,6 +1496,28 @@
   </style>
 </head>
 <body>
+  <!-- Pantalla de bloqueo -->
+  <section id="lock-screen" aria-label="Pantalla de bloqueo">
+    <div class="lock-bg-layer" aria-hidden="true"></div>
+
+    <div class="lock-scrim">
+      <div class="lock-clock-box">
+        <div id="lock-time">--:--</div>
+        <div id="lock-date">Cargando fecha...</div>
+      </div>
+
+      <div id="lock-login-panel" aria-live="polite">
+        <img id="lock-user-avatar" src="public/img/lock-screen/user.png" alt="Usuario" onerror="this.src='public/img/apps/settings/defAccount.png'">
+        <div id="lock-user-name">Usuario</div>
+        <button id="lock-signin-btn" type="button">Iniciar sesión</button>
+      </div>
+
+      <div class="lock-bottom-hint">
+        <span>Toca el fondo para iniciar sesión</span>
+      </div>
+    </div>
+  </section>
+
   <div id="desktop">
     <!-- Accesos directos del escritorio -->
     <div id="desktop-icons" aria-label="Accesos directos del escritorio"></div>
@@ -1360,8 +1560,8 @@
         <button class="start-footer-btn" type="button">
           <span id="start-user-label">Usuario</span>
         </button>
-        <button class="start-footer-btn" type="button">
-          <span>⏻</span>
+        <button id="lock-screen-btn" class="start-footer-btn" type="button" title="Bloquear equipo">
+          <span>🔒</span>
         </button>
       </div>
     </aside>
@@ -1553,7 +1753,10 @@
       updateStatus: "Estás al día · Compilación 26200.Win11HTML"
     };
 
+    window.win11SettingsState = settingsState;
+
     document.addEventListener("DOMContentLoaded", () => {
+      const lockScreenBtn = document.getElementById("lock-screen-btn");
       const desktopEl = document.getElementById("desktop");
       const desktopIconsEl = document.getElementById("desktop-icons");
       const windowsLayer = document.getElementById("windows-layer");
@@ -1564,15 +1767,24 @@
       const taskViewEmptyCard = document.getElementById("task-view-empty-card");
       const taskViewOpenGrid = document.getElementById("task-view-open-grid");
       const startUserLabel = document.getElementById("start-user-label");
+      const lockUserName = document.getElementById("lock-user-name");
       const datetimeWidget = document.getElementById("datetime-widget");
       const calendarFlyout = document.getElementById("calendar-flyout");
+
+      if (lockScreenBtn) {
+        lockScreenBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (typeof window.lockWin11Screen === "function") {
+            window.lockWin11Screen();
+          }
+        });
+      }
 
       const openWindows = new Map();
       let topZIndex = 210;
       let cascadeOffset = 0;
       let activeSettingsSection = "personalisation";
 
-      // Estado de papelera e íconos del escritorio
       let trashedItems = [];
       try {
         trashedItems = JSON.parse(localStorage.getItem(TRASH_STORAGE_KEY) || "[]");
@@ -1700,7 +1912,6 @@
           btn.appendChild(img);
           btn.appendChild(span);
 
-          // Selección + arrastre hacia la papelera
           let pointerDownPos = null;
           let isDraggingShortcut = false;
 
@@ -1782,8 +1993,12 @@
       }
 
       function syncUserLabels() {
+        const displayUser = settingsState.username || "Usuario";
         if (startUserLabel) {
-          startUserLabel.textContent = settingsState.username || "Usuario";
+          startUserLabel.textContent = displayUser;
+        }
+        if (lockUserName) {
+          lockUserName.textContent = displayUser;
         }
         renderDesktopIcons();
       }
@@ -2152,10 +2367,12 @@
 
           contentEl.querySelector("#set-24h-wrap .settings-toggle").addEventListener("click", () => {
             settingsState.time24h = !settingsState.time24h;
+            if (typeof window.updateLockClock === "function") window.updateLockClock();
             renderSettingsBody(containerEl);
           });
           contentEl.querySelector("#set-locale-select").addEventListener("change", (e) => {
             settingsState.locale = e.target.value;
+            if (typeof window.updateLockClock === "function") window.updateLockClock();
             renderSettingsBody(containerEl);
           });
           return;
@@ -2339,7 +2556,8 @@
         if (datetimeWidget) datetimeWidget.classList.remove("active");
       }
 
-      // Mini calendario al tocar fecha y hora
+      window.closeWin11SystemPanels = closeSystemPanels;
+
       const todayRef = new Date();
       let calYear = todayRef.getFullYear();
       let calMonth = todayRef.getMonth();
@@ -2360,7 +2578,7 @@
         monthEl.textContent = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1);
 
         const firstDay = new Date(calYear, calMonth, 1);
-        const startOffset = (firstDay.getDay() + 6) % 7; // Lunes = 0
+        const startOffset = (firstDay.getDay() + 6) % 7;
         const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
         daysEl.innerHTML = "";
@@ -2724,6 +2942,7 @@
   </script>
 
   <!-- Scripts de componentes -->
+  <script src="src/components/lock-screen/js/login.js"></script>
   <script src="src/components/taskbar/taskbar-left/weather/js/weather.js"></script>
   <script src="src/components/taskbar/taskbar-right/js/bateria.js"></script>
   <script src="src/components/taskbar/taskbar-right/js/dateandtime.js"></script>
