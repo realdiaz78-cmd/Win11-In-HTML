@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const OPENWEATHER_API_KEY = "TU_API_KEY_AQUI";
+  const OPENWEATHER_API_KEY = "e45d2267f6b13dbcf45141b0353e5289";
   const ICON_BASE_PATH = "public/img/taskbar/taskbar-left/";
 
   const weatherIcon = document.getElementById("weather-icon");
