@@ -17,6 +17,23 @@
       overflow: hidden;
       font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
       user-select: none;
+      background: #0b192c;
+    }
+
+    /* Overlay de Night Light (Luz nocturna cálida en toda la pantalla) */
+    #night-light-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 3500;
+      pointer-events: none;
+      opacity: 0;
+      background: rgba(255, 148, 45, 0.24);
+      mix-blend-mode: multiply;
+      transition: opacity 0.25s ease;
+    }
+
+    #night-light-overlay.active {
+      opacity: 1;
     }
 
     /* Pantalla de arranque (Startup - 2000ms) */
@@ -242,6 +259,17 @@
       transform: scale(0.97);
     }
 
+    /* Contenedor de sesión (Escritorio + Taskbar) afectado por Brillo / Contraste / Tema Oscuro */
+    #os-session-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: filter 0.14s ease;
+    }
+
     #desktop {
       position: relative;
       width: 100%;
@@ -251,7 +279,6 @@
       background-position: center;
       background-repeat: no-repeat;
       overflow: hidden;
-      transition: filter 0.16s ease;
     }
 
     /* Iconos del escritorio */
@@ -345,12 +372,22 @@
       flex-direction: column;
       overflow: hidden;
       pointer-events: auto;
-      transition: box-shadow 0.15s ease, opacity 0.15s ease;
+      transition: box-shadow 0.15s ease, opacity 0.15s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    body.dark-theme .app-window {
+      background: rgba(28, 28, 30, 0.96);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: #f1f5f9;
     }
 
     .app-window.focused {
       box-shadow: 0 22px 54px rgba(0, 0, 0, 0.36);
       border-color: rgba(255, 255, 255, 0.95);
+    }
+
+    body.dark-theme .app-window.focused {
+      border-color: rgba(96, 165, 250, 0.45);
     }
 
     .app-window.minimized {
@@ -376,6 +413,11 @@
       padding-left: 12px;
       cursor: grab;
       flex-shrink: 0;
+    }
+
+    body.dark-theme .window-titlebar {
+      background: rgba(36, 36, 40, 0.95);
+      border-bottom-color: rgba(255, 255, 255, 0.09);
     }
 
     .window-titlebar:active {
@@ -405,6 +447,10 @@
       text-overflow: ellipsis;
     }
 
+    body.dark-theme .window-title-text {
+      color: #f1f5f9;
+    }
+
     .window-controls {
       display: flex;
       align-items: center;
@@ -425,8 +471,16 @@
       transition: background 0.14s ease, color 0.14s ease;
     }
 
+    body.dark-theme .window-ctrl-btn {
+      color: #e2e8f0;
+    }
+
     .window-ctrl-btn:hover {
       background: rgba(0, 0, 0, 0.07);
+    }
+
+    body.dark-theme .window-ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
     }
 
     .window-ctrl-btn.close-btn:hover {
@@ -441,6 +495,10 @@
       height: calc(100% - 36px);
       background: #ffffff;
       overflow: hidden;
+    }
+
+    body.dark-theme .window-body {
+      background: #18181b;
     }
 
     .window-iframe {
@@ -465,6 +523,11 @@
       overflow: hidden;
     }
 
+    body.dark-theme .settings-app {
+      background: #18181b;
+      color: #f4f4f5;
+    }
+
     .settings-sidebar {
       width: 215px;
       min-width: 165px;
@@ -475,6 +538,11 @@
       display: flex;
       flex-direction: column;
       gap: 2px;
+    }
+
+    body.dark-theme .settings-sidebar {
+      background: #202024;
+      border-right-color: #2f2f36;
     }
 
     .settings-profile {
@@ -510,6 +578,10 @@
       text-overflow: ellipsis;
     }
 
+    body.dark-theme .settings-profile-name {
+      color: #f4f4f5;
+    }
+
     .settings-profile-sub {
       font-size: 10px;
       color: #64748b;
@@ -531,8 +603,16 @@
       transition: background 0.14s ease;
     }
 
+    body.dark-theme .settings-nav-btn {
+      color: #d4d4d8;
+    }
+
     .settings-nav-btn:hover {
       background: rgba(255, 255, 255, 0.72);
+    }
+
+    body.dark-theme .settings-nav-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .settings-nav-btn.active {
@@ -540,6 +620,11 @@
       color: #0067c0;
       font-weight: 600;
       box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    body.dark-theme .settings-nav-btn.active {
+      background: #2c2c32;
+      color: #60a5fa;
     }
 
     .settings-nav-btn img {
@@ -556,11 +641,19 @@
       background: #f8fafc;
     }
 
+    body.dark-theme .settings-content {
+      background: #18181b;
+    }
+
     .settings-title {
       font-size: 18px;
       font-weight: 600;
       color: #0f172a;
       margin-bottom: 4px;
+    }
+
+    body.dark-theme .settings-title {
+      color: #f4f4f5;
     }
 
     .settings-subtitle {
@@ -578,6 +671,11 @@
       border-radius: 10px;
       padding: 12px;
       margin-bottom: 16px;
+    }
+
+    body.dark-theme .settings-preview-box {
+      background: #222227;
+      border-color: #32323a;
     }
 
     .settings-current-thumb {
@@ -602,10 +700,18 @@
       color: #0067c0;
     }
 
+    body.dark-theme .settings-preview-label {
+      color: #60a5fa;
+    }
+
     .settings-preview-name {
       font-size: 13px;
       font-weight: 600;
       color: #0f172a;
+    }
+
+    body.dark-theme .settings-preview-name {
+      color: #f4f4f5;
     }
 
     .settings-preview-path {
@@ -628,6 +734,11 @@
       cursor: pointer;
       text-align: left;
       transition: transform 0.14s ease, border-color 0.14s ease;
+    }
+
+    body.dark-theme .wallpaper-card {
+      background: #222227;
+      border-color: #32323a;
     }
 
     .wallpaper-card:hover {
@@ -658,6 +769,10 @@
       text-overflow: ellipsis;
     }
 
+    body.dark-theme .wallpaper-caption {
+      color: #e4e4e7;
+    }
+
     .settings-card-list {
       display: flex;
       flex-direction: column;
@@ -675,6 +790,11 @@
       padding: 12px 14px;
     }
 
+    body.dark-theme .settings-row-card {
+      background: #222227;
+      border-color: #32323a;
+    }
+
     .settings-row-meta {
       display: flex;
       flex-direction: column;
@@ -685,6 +805,10 @@
       font-size: 13px;
       font-weight: 600;
       color: #0f172a;
+    }
+
+    body.dark-theme .settings-row-title {
+      color: #f4f4f5;
     }
 
     .settings-row-desc {
@@ -723,6 +847,12 @@
       transition: background 0.14s ease;
     }
 
+    body.dark-theme .settings-action-btn {
+      background: #2c2c32;
+      border-color: #3f3f46;
+      color: #f4f4f5;
+    }
+
     .settings-action-btn:hover {
       background: #e2e8f0;
     }
@@ -756,17 +886,11 @@
       color: #1e293b;
     }
 
-    .settings-text-input {
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      color: #0f172a;
-      font-size: 12px;
-      font-family: inherit;
-      user-select: text;
+    body.dark-theme .settings-range-val {
+      color: #e4e4e7;
     }
 
+    .settings-text-input,
     .settings-select {
       padding: 6px 10px;
       border-radius: 6px;
@@ -775,7 +899,13 @@
       color: #0f172a;
       font-size: 12px;
       font-family: inherit;
-      cursor: pointer;
+    }
+
+    body.dark-theme .settings-text-input,
+    body.dark-theme .settings-select {
+      background: #2c2c32;
+      border-color: #3f3f46;
+      color: #f4f4f5;
     }
 
     /* Menú de Inicio */
@@ -802,6 +932,12 @@
       z-index: 900;
     }
 
+    body.dark-theme #start-menu {
+      background: rgba(32, 32, 36, 0.94);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: #f4f4f5;
+    }
+
     #start-menu.open {
       opacity: 1;
       visibility: visible;
@@ -821,6 +957,12 @@
       cursor: text;
     }
 
+    body.dark-theme .start-search-box {
+      background: rgba(45, 45, 52, 0.9);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #f4f4f5;
+    }
+
     .start-section-header {
       display: flex;
       align-items: center;
@@ -830,6 +972,10 @@
       color: #1f1f1f;
       margin-bottom: 8px;
       padding: 0 4px;
+    }
+
+    body.dark-theme .start-section-header {
+      color: #e4e4e7;
     }
 
     .start-pinned-grid {
@@ -860,6 +1006,10 @@
       background: rgba(255, 255, 255, 0.72);
     }
 
+    body.dark-theme .start-app-item:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
     .start-app-item img {
       width: 26px;
       height: 26px;
@@ -871,6 +1021,10 @@
       color: #1b1b1b;
       text-align: center;
       line-height: 1.15;
+    }
+
+    body.dark-theme .start-app-item span {
+      color: #f4f4f5;
     }
 
     .start-recommended-list {
@@ -898,6 +1052,10 @@
       background: rgba(255, 255, 255, 0.72);
     }
 
+    body.dark-theme .start-rec-item:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
     .start-rec-item img {
       width: 24px;
       height: 24px;
@@ -916,9 +1074,17 @@
       color: #1b1b1b;
     }
 
+    body.dark-theme .start-rec-title {
+      color: #f4f4f5;
+    }
+
     .start-rec-sub {
       font-size: 10px;
       color: #555;
+    }
+
+    body.dark-theme .start-rec-sub {
+      color: #a1a1aa;
     }
 
     .start-footer {
@@ -929,6 +1095,11 @@
       border-top: 1px solid rgba(0, 0, 0, 0.08);
       font-size: 12px;
       color: #222;
+    }
+
+    body.dark-theme .start-footer {
+      border-top-color: rgba(255, 255, 255, 0.1);
+      color: #f4f4f5;
     }
 
     .start-footer-btn {
@@ -945,8 +1116,104 @@
       transition: background 0.15s ease;
     }
 
+    body.dark-theme .start-footer-btn {
+      color: #f4f4f5;
+    }
+
     .start-footer-btn:hover {
       background: rgba(255, 255, 255, 0.72);
+    }
+
+    body.dark-theme .start-footer-btn:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    /* Mini-menú de energía */
+    .power-options-menu {
+      position: absolute;
+      right: 22px;
+      bottom: 58px;
+      min-width: 150px;
+      padding: 6px;
+      border-radius: 10px;
+      background: rgba(248, 250, 252, 0.96);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.16s ease, transform 0.18s ease, visibility 0.16s ease;
+      z-index: 960;
+    }
+
+    .power-options-menu.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .power-option-btn {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.14s ease, color 0.14s ease;
+    }
+
+    .power-option-btn:hover {
+      background: rgba(0, 103, 192, 0.12);
+      color: #0067c0;
+    }
+
+    /* Pantalla negra de Apagando Equipo / Reiniciando */
+    .power-state-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 4000;
+      background-color: #000000;
+      color: #ffffff;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 56px 24px 56px;
+      user-select: none;
+    }
+
+    .power-state-screen.active {
+      display: flex;
+    }
+
+    #power-state-gif {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    #power-state-text {
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 500;
+      text-align: center;
+      margin: auto 0;
+    }
+
+    .power-state-bottom-spacer {
+      height: 56px;
+      flex-shrink: 0;
     }
 
     /* Panel Windows Search */
@@ -973,6 +1240,12 @@
       z-index: 910;
     }
 
+    body.dark-theme #search-panel {
+      background: rgba(32, 32, 36, 0.94);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: #f4f4f5;
+    }
+
     #search-panel.open {
       opacity: 1;
       visibility: visible;
@@ -992,6 +1265,12 @@
       margin-bottom: 12px;
     }
 
+    body.dark-theme .search-bar-wrap {
+      background: rgba(45, 45, 52, 0.95);
+      border-color: rgba(255, 255, 255, 0.14);
+      border-bottom-color: #60a5fa;
+    }
+
     .search-bar-wrap img {
       width: 18px;
       height: 18px;
@@ -1006,6 +1285,10 @@
       font-size: 13px;
       color: #111;
       font-family: inherit;
+    }
+
+    body.dark-theme #search-input {
+      color: #f4f4f5;
     }
 
     .search-tabs {
@@ -1027,6 +1310,10 @@
       cursor: pointer;
     }
 
+    body.dark-theme .search-tab {
+      color: #d4d4d8;
+    }
+
     .search-tab.active {
       background: rgba(0, 103, 192, 0.14);
       color: #0067c0;
@@ -1038,6 +1325,10 @@
       font-weight: 600;
       color: #1f1f1f;
       margin-bottom: 8px;
+    }
+
+    body.dark-theme .search-section-title {
+      color: #e4e4e7;
     }
 
     .search-quick-list {
@@ -1065,6 +1356,10 @@
       background: rgba(255, 255, 255, 0.75);
     }
 
+    body.dark-theme .search-result-item:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
     .search-result-item img {
       width: 24px;
       height: 24px;
@@ -1083,9 +1378,17 @@
       color: #111;
     }
 
+    body.dark-theme .search-result-name {
+      color: #f4f4f5;
+    }
+
     .search-result-type {
       font-size: 11px;
       color: #555;
+    }
+
+    body.dark-theme .search-result-type {
+      color: #a1a1aa;
     }
 
     /* Vista de Tareas (Task View) */
@@ -1257,6 +1560,12 @@
       z-index: 950;
     }
 
+    body.dark-theme #calendar-flyout {
+      background: rgba(32, 32, 36, 0.95);
+      border-color: rgba(255, 255, 255, 0.14);
+      color: #f4f4f5;
+    }
+
     #calendar-flyout.open {
       opacity: 1;
       visibility: visible;
@@ -1276,7 +1585,6 @@
     .cal-flyout-month {
       font-size: 13px;
       font-weight: 700;
-      color: #0f172a;
     }
 
     .cal-flyout-nav {
@@ -1296,8 +1604,10 @@
       cursor: pointer;
     }
 
-    .cal-flyout-btn:hover {
-      background: #ffffff;
+    body.dark-theme .cal-flyout-btn {
+      background: #2c2c32;
+      border-color: #3f3f46;
+      color: #f4f4f5;
     }
 
     .cal-flyout-weekdays {
@@ -1322,7 +1632,7 @@
       border-radius: 999px;
       border: none;
       background: transparent;
-      color: #1e293b;
+      color: inherit;
       font-size: 11.5px;
       cursor: pointer;
       display: flex;
@@ -1331,7 +1641,7 @@
     }
 
     .cal-day-cell:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(128, 128, 128, 0.18);
     }
 
     .cal-day-cell:disabled {
@@ -1346,8 +1656,8 @@
     }
 
     .cal-day-cell.selected:not(.today) {
-      background: rgba(0, 103, 192, 0.16);
-      color: #0067c0;
+      background: rgba(0, 103, 192, 0.18);
+      color: #4ea8ff;
       font-weight: 700;
     }
 
@@ -1359,7 +1669,180 @@
       align-items: center;
       justify-content: space-between;
       font-size: 11px;
-      color: #475569;
+      color: #64748b;
+    }
+
+    /* ==================== QUICK SETTINGS FLYOUT ==================== */
+    #quick-settings-flyout {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: 334px;
+      background: rgba(36, 36, 36, 0.95);
+      backdrop-filter: blur(26px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+      color: #ffffff;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(14px);
+      transition: opacity 0.16s ease, transform 0.18s ease, visibility 0.16s ease;
+      z-index: 955;
+    }
+
+    #quick-settings-flyout.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .qs-body {
+      padding: 18px 18px 16px;
+    }
+
+    .qs-tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 12px;
+      row-gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .qs-tile-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qs-tile-btn {
+      width: 100%;
+      height: 50px;
+      border-radius: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.07);
+      color: #f4f4f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease, transform 0.1s ease;
+    }
+
+    .qs-tile-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .qs-tile-btn:active {
+      transform: scale(0.97);
+    }
+
+    .qs-tile-btn.active {
+      background: #4cc2ff;
+      border-color: #4cc2ff;
+      color: #111827;
+    }
+
+    .qs-tile-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .qs-tile-label {
+      font-size: 12px;
+      font-weight: 400;
+      color: #e5e7eb;
+      text-align: center;
+    }
+
+    .qs-sliders-box {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .qs-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .qs-slider-icon {
+      width: 18px;
+      height: 18px;
+      color: #f4f4f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .qs-slider-icon svg {
+      width: 17px;
+      height: 17px;
+      fill: currentColor;
+    }
+
+    .qs-range {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(
+        to right,
+        #4cc2ff 0%,
+        #4cc2ff var(--val, 100%),
+        rgba(255, 255, 255, 0.24) var(--val, 100%),
+        rgba(255, 255, 255, 0.24) 100%
+      );
+      outline: none;
+      cursor: pointer;
+    }
+
+    .qs-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #4cc2ff;
+      border: 4px solid #2b2b2b;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+    }
+
+    .qs-range::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #4cc2ff;
+      border: 4px solid #2b2b2b;
+      cursor: pointer;
+    }
+
+    .qs-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 18px;
+      background: rgba(24, 24, 24, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: #f4f4f5;
+    }
+
+    .qs-footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
     }
 
     /* Taskbar */
@@ -1375,6 +1858,12 @@
       justify-content: space-between;
       padding: 0 8px;
       z-index: 1000;
+      transition: background 0.18s ease, border-color 0.18s ease;
+    }
+
+    body.dark-theme #taskbar {
+      background: rgba(28, 28, 30, 0.88);
+      border-top-color: rgba(255, 255, 255, 0.1);
     }
 
     .taskbar-left-wrap {
@@ -1398,6 +1887,10 @@
       background: rgba(255, 255, 255, 0.55);
     }
 
+    body.dark-theme #weather-widget:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+
     #weather-icon {
       width: 24px;
       height: 24px;
@@ -1417,9 +1910,17 @@
       color: #111;
     }
 
+    body.dark-theme #weather-temp {
+      color: #f4f4f5;
+    }
+
     #weather-desc {
       font-size: 11px;
       color: #333;
+    }
+
+    body.dark-theme #weather-desc {
+      color: #a1a1aa;
     }
 
     .taskbar-center {
@@ -1447,6 +1948,11 @@
     .taskbar-btn:hover,
     .taskbar-btn.active {
       background: rgba(255, 255, 255, 0.72);
+    }
+
+    body.dark-theme .taskbar-btn:hover,
+    body.dark-theme .taskbar-btn.active {
+      background: rgba(255, 255, 255, 0.12);
     }
 
     .taskbar-btn.running::after {
@@ -1479,36 +1985,74 @@
     #taskbar-right {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 0 8px;
+      gap: 6px;
+      padding: 0 4px;
       height: 100%;
     }
 
-    #battery-widget {
-      display: flex;
+    /* Cluster único de WiFi + Volumen + Batería */
+    #tray-cluster-btn {
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 6px;
+      gap: 7px;
+      height: 36px;
+      padding: 0 9px;
       border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
       cursor: pointer;
-      transition: background 0.15s ease;
+      transition: background 0.14s ease, border-color 0.14s ease;
     }
 
-    #battery-widget:hover {
-      background: rgba(255, 255, 255, 0.55);
+    #tray-cluster-btn:hover,
+    #tray-cluster-btn.active {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: rgba(15, 23, 42, 0.08);
+    }
+
+    body.dark-theme #tray-cluster-btn:hover,
+    body.dark-theme #tray-cluster-btn.active {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .tray-cluster-icon {
+      width: 16px;
+      height: 16px;
+      object-fit: contain;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    body.dark-theme .tray-cluster-icon {
+      filter: invert(1) brightness(1.05);
+    }
+
+    #battery-widget {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     #battery-icon {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       object-fit: contain;
       display: block;
     }
 
+    body.dark-theme #battery-icon {
+      filter: invert(1) brightness(1.05);
+    }
+
     #battery-percent {
-      font-size: 12px;
+      font-size: 11.5px;
       color: #111;
       font-weight: 500;
+    }
+
+    body.dark-theme #battery-percent {
+      color: #f4f4f5;
     }
 
     #datetime-widget {
@@ -1516,7 +2060,7 @@
       flex-direction: column;
       align-items: flex-end;
       justify-content: center;
-      padding: 4px 6px;
+      padding: 4px 8px;
       border-radius: 6px;
       line-height: 1.15;
       font-size: 12px;
@@ -1525,9 +2069,18 @@
       transition: background 0.15s ease;
     }
 
+    body.dark-theme #datetime-widget {
+      color: #f4f4f5;
+    }
+
     #datetime-widget:hover,
     #datetime-widget.active {
       background: rgba(255, 255, 255, 0.72);
+    }
+
+    body.dark-theme #datetime-widget:hover,
+    body.dark-theme #datetime-widget.active {
+      background: rgba(255, 255, 255, 0.12);
     }
 
     #clock-time {
@@ -1538,9 +2091,16 @@
       font-size: 11px;
       color: #333;
     }
+
+    body.dark-theme #clock-date {
+      color: #a1a1aa;
+    }
   </style>
 </head>
 <body>
+  <!-- Capa global de Night Light -->
+  <div id="night-light-overlay" aria-hidden="true"></div>
+
   <!-- Pantalla de arranque (2000 ms) -->
   <section id="startup-screen" aria-label="Iniciando sistema">
     <div class="startup-spacer" aria-hidden="true"></div>
@@ -1570,168 +2130,247 @@
     </div>
   </section>
 
-  <div id="desktop">
-    <!-- Accesos directos del escritorio -->
-    <div id="desktop-icons" aria-label="Accesos directos del escritorio"></div>
+  <div id="os-session-shell">
+    <div id="desktop">
+      <!-- Accesos directos del escritorio -->
+      <div id="desktop-icons" aria-label="Accesos directos del escritorio"></div>
 
-    <!-- Contenedor donde se montan las ventanas con sus iframes o apps nativas -->
-    <div id="windows-layer"></div>
+      <!-- Contenedor donde se montan las ventanas con sus iframes o apps nativas -->
+      <div id="windows-layer"></div>
 
-    <!-- Menú de Inicio -->
-    <aside id="start-menu" aria-hidden="true">
-      <div id="start-search-trigger" class="start-search-box">Buscar aplicaciones, archivos y configuración</div>
+      <!-- Menú de Inicio -->
+      <aside id="start-menu" aria-hidden="true">
+        <div id="start-search-trigger" class="start-search-box">Buscar aplicaciones, archivos y configuración</div>
 
-      <div class="start-section-header">
-        <span>Anclado (17 aplicaciones)</span>
-      </div>
+        <div class="start-section-header">
+          <span>Anclado (17 aplicaciones)</span>
+        </div>
 
-      <div id="start-pinned-grid" class="start-pinned-grid"></div>
+        <div id="start-pinned-grid" class="start-pinned-grid"></div>
 
-      <div class="start-section-header">
-        <span>Recomendado</span>
-      </div>
+        <div class="start-section-header">
+          <span>Recomendado</span>
+        </div>
 
-      <div class="start-recommended-list">
-        <button class="start-rec-item" type="button" data-open-app="explorer">
-          <img src="public/img/apps/icons/edge.png" alt="Explorer" onerror="this.src='public/img/taskbar/explorer.png'">
-          <div class="start-rec-meta">
-            <span class="start-rec-title">Explorador de archivos</span>
-            <span class="start-rec-sub">Reciente</span>
+        <div class="start-recommended-list">
+          <button class="start-rec-item" type="button" data-open-app="explorer">
+            <img src="public/img/apps/icons/edge.png" alt="Explorer" onerror="this.src='public/img/taskbar/explorer.png'">
+            <div class="start-rec-meta">
+              <span class="start-rec-title">Explorador de archivos</span>
+              <span class="start-rec-sub">Reciente</span>
+            </div>
+          </button>
+          <button class="start-rec-item" type="button" data-open-app="settings">
+            <img src="public/img/apps/icons/settings.png" alt="Ajustes" onerror="this.src='public/img/apps/settings/Personalisation.png'">
+            <div class="start-rec-meta">
+              <span class="start-rec-title">Ajustes</span>
+              <span class="start-rec-sub">Personalización</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="start-footer">
+          <button class="start-footer-btn" type="button">
+            <span id="start-user-label">Usuario</span>
+          </button>
+          <button id="power-menu-btn" class="start-footer-btn" type="button" title="Energía" aria-label="Energía">
+            <img src="public/img/start-menu-icons/apagar.png" alt="Apagar" style="width: 18px; height: 18px; object-fit: contain; display: block;">
+          </button>
+        </div>
+      </aside>
+
+      <!-- Panel Windows Search -->
+      <aside id="search-panel" aria-hidden="true">
+        <div class="search-bar-wrap">
+          <img src="public/img/taskbar/search.png" alt="Buscar">
+          <input id="search-input" type="text" placeholder="Buscar aplicaciones en Windows...">
+        </div>
+
+        <div class="search-tabs">
+          <button class="search-tab active" type="button">Todo</button>
+          <button class="search-tab" type="button">Aplicaciones</button>
+          <button class="search-tab" type="button">Documentos</button>
+          <button class="search-tab" type="button">Web</button>
+        </div>
+
+        <div class="search-section-title">Aplicaciones disponibles</div>
+
+        <div id="search-apps-list" class="search-quick-list"></div>
+      </aside>
+
+      <!-- Vista de Tareas (Task View) -->
+      <section id="task-view-panel" aria-hidden="true">
+        <div id="task-view-windows-area" class="task-view-windows-area">
+          <span id="active-desktop-label" class="task-view-desktop-badge">Escritorio 1</span>
+          <div id="task-view-empty-card" class="task-view-empty-card">No hay ventanas abiertas en este escritorio</div>
+          <div id="task-view-open-grid" class="task-view-open-grid"></div>
+        </div>
+
+        <div id="virtual-desktops-bar" class="task-view-desktops-bar">
+          <div class="virtual-desktop-card active" data-desktop-number="1">
+            <span class="virtual-desktop-label">Escritorio 1</span>
           </div>
+          <div class="virtual-desktop-card" data-desktop-number="2">
+            <span class="virtual-desktop-label">Escritorio 2</span>
+          </div>
+          <button id="new-desktop-btn" class="new-desktop-btn" type="button">+ Nuevo escritorio</button>
+        </div>
+      </section>
+
+      <!-- Mini Calendario al tocar fecha y hora -->
+      <aside id="calendar-flyout" aria-hidden="true">
+        <div class="cal-flyout-header">
+          <span id="cal-flyout-month" class="cal-flyout-month">Mes Año</span>
+          <div class="cal-flyout-nav">
+            <button id="cal-prev-month" class="cal-flyout-btn" type="button" title="Mes anterior">‹</button>
+            <button id="cal-next-month" class="cal-flyout-btn" type="button" title="Mes siguiente">›</button>
+          </div>
+        </div>
+        <div class="cal-flyout-weekdays">
+          <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+        </div>
+        <div id="cal-flyout-days" class="cal-flyout-days"></div>
+        <div class="cal-flyout-footer">
+          <span id="cal-flyout-selected">Hoy</span>
+          <button id="cal-today-btn" class="cal-flyout-btn" type="button" style="width:auto;padding:0 8px;font-size:11px;font-weight:600;">Hoy</button>
+        </div>
+      </aside>
+
+      <!-- Menú rápido (Quick Settings) al tocar el cluster WiFi + Volumen + Batería -->
+      <aside id="quick-settings-flyout" aria-hidden="true">
+        <div class="qs-body">
+          <div class="qs-tiles-grid">
+            <div class="qs-tile-wrap">
+              <button id="qs-wifi-tile" class="qs-tile-btn active" type="button" aria-label="WiFi">
+                <svg viewBox="0 0 24 24"><path d="M12 18c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-4.9-2.3l1.4 1.4C9.3 16.4 10.6 16 12 16s2.7.4 3.5 1.1l1.4-1.4C15.7 14.6 13.9 14 12 14s-3.7.6-4.9 1.7zm-2.8-2.8l1.4 1.4C7.3 13 9.5 12.2 12 12.2s4.7.8 6.3 2.1l1.4-1.4C17.7 11.1 15 10.2 12 10.2s-5.7.9-7.7 2.7zm-2.8-2.8l1.4 1.4C5.3 9.9 8.5 8.8 12 8.8s6.7 1.1 9.1 2.9l1.4-1.4C19.7 8.1 16 6.8 12 6.8s-7.7 1.3-10.5 3.3z"/></svg>
+              </button>
+              <span class="qs-tile-label">WiFi</span>
+            </div>
+
+            <div class="qs-tile-wrap">
+              <button id="qs-bt-tile" class="qs-tile-btn" type="button" aria-label="Bluetooth">
+                <svg viewBox="0 0 24 24"><path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg>
+              </button>
+              <span class="qs-tile-label">Bluetooth</span>
+            </div>
+
+            <div class="qs-tile-wrap">
+              <button id="qs-flight-tile" class="qs-tile-btn" type="button" aria-label="Flight Mode">
+                <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+              </button>
+              <span class="qs-tile-label">Flight Mode</span>
+            </div>
+
+            <div class="qs-tile-wrap">
+              <button id="qs-saver-tile" class="qs-tile-btn" type="button" aria-label="Battery Saver">
+                <svg viewBox="0 0 24 24"><path d="M17 20c.3 0 .5-.1.7-.3l3.6-3.6c.4-.4.4-1 0-1.4l-3.6-3.6c-.2-.2-.4-.3-.7-.3H8c-2.8 0-5 2.2-5 5s2.2 5 5 5h9zm-9-2c-1.7 0-3-1.3-3-3s1.3-3 3-3h8.6l2.6 2.6-2.6 2.6H8z"/></svg>
+              </button>
+              <span class="qs-tile-label">Battery Saver</span>
+            </div>
+
+            <div class="qs-tile-wrap">
+              <button id="qs-theme-tile" class="qs-tile-btn" type="button" aria-label="Theme">
+                <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+              </button>
+              <span class="qs-tile-label">Theme</span>
+            </div>
+
+            <div class="qs-tile-wrap">
+              <button id="qs-night-tile" class="qs-tile-btn" type="button" aria-label="Night Light">
+                <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+              </button>
+              <span class="qs-tile-label">Night Light</span>
+            </div>
+          </div>
+
+          <div class="qs-sliders-box">
+            <div class="qs-slider-row">
+              <span class="qs-slider-icon" title="Brillo">
+                <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/></svg>
+              </span>
+              <input id="qs-brightness-slider" class="qs-range" type="range" min="20" max="120" value="100" aria-label="Brillo">
+            </div>
+
+            <div class="qs-slider-row">
+              <span class="qs-slider-icon" title="Volumen">
+                <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              </span>
+              <input id="qs-volume-slider" class="qs-range" type="range" min="0" max="100" value="75" aria-label="Volumen">
+            </div>
+          </div>
+        </div>
+
+        <div class="qs-footer">
+          <div class="qs-footer-left">
+            <img src="public/img/taskbar/taskbar-right/iconos-de-bandeja/bateria-llena.png" alt="Batería" style="width:16px;height:16px;object-fit:contain;filter:invert(1);">
+            <span id="qs-battery-text">100%</span>
+          </div>
+          <span id="qs-status-hint" style="color:#9ca3af;font-size:11px;">Claro</span>
+        </div>
+      </aside>
+    </div>
+
+    <footer id="taskbar">
+      <!-- Taskbar Left (Weather Widget) -->
+      <div class="taskbar-left-wrap">
+        <div id="weather-widget" data-open-app="weather" title="El Tiempo">
+          <img id="weather-icon" src="public/img/taskbar/taskbar-left/sunny.png" alt="Weather">
+          <div class="weather-text">
+            <span id="weather-temp">--°C</span>
+            <span id="weather-desc">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Taskbar Center (Apps) -->
+      <div id="taskbar-center" class="taskbar-center">
+        <button id="start-btn" class="taskbar-btn" title="Start" aria-label="Start">
+          <img src="public/img/taskbar/home.png" alt="Start">
         </button>
-        <button class="start-rec-item" type="button" data-open-app="settings">
+        <button id="search-btn" class="taskbar-btn" title="Search" aria-label="Search">
+          <img src="public/img/taskbar/search.png" alt="Search">
+        </button>
+        <button id="task-view-btn" class="taskbar-btn" title="Task View" aria-label="Task View">
+          <img src="public/img/taskbar/task-view.png" alt="Task View">
+        </button>
+        <button class="taskbar-btn" title="Teams" aria-label="Teams">
+          <img src="public/img/taskbar/teams.png" alt="Teams">
+        </button>
+        <button class="taskbar-btn" title="Copilot" aria-label="Copilot">
+          <img src="public/img/taskbar/copilot.svg" alt="Copilot">
+        </button>
+        <button class="taskbar-btn" data-open-app="edge" title="Microsoft Edge" aria-label="Microsoft Edge">
+          <img src="public/img/apps/icons/edge.png" alt="Edge" onerror="this.src='public/img/taskbar/edge.png'">
+        </button>
+        <button class="taskbar-btn" data-open-app="explorer" title="Explorador de archivos" aria-label="Explorador de archivos">
+          <img src="public/img/taskbar/explorer.png" alt="Explorer">
+        </button>
+        <button class="taskbar-btn" data-open-app="store" title="Microsoft Store" aria-label="Microsoft Store">
+          <img src="public/img/apps/icons/store.png" alt="Store" onerror="this.src='public/img/taskbar/store.png'">
+        </button>
+        <button class="taskbar-btn" data-open-app="settings" title="Ajustes" aria-label="Ajustes">
           <img src="public/img/apps/icons/settings.png" alt="Ajustes" onerror="this.src='public/img/apps/settings/Personalisation.png'">
-          <div class="start-rec-meta">
-            <span class="start-rec-title">Ajustes</span>
-            <span class="start-rec-sub">Personalización</span>
-          </div>
         </button>
       </div>
 
-      <div class="start-footer">
-        <button class="start-footer-btn" type="button">
-          <span id="start-user-label">Usuario</span>
+      <!-- Taskbar Right (Cluster único WiFi + Volumen + Batería y Date/Time) -->
+      <div id="taskbar-right">
+        <button id="tray-cluster-btn" type="button" title="Configuración rápida" aria-label="Configuración rápida">
+          <img id="tray-wifi-icon" class="tray-cluster-icon" src="public/img/taskbar/taskbar-right/iconos-de-bandeja/wifi.png" alt="WiFi">
+          <img id="tray-volume-icon" class="tray-cluster-icon" src="public/img/taskbar/taskbar-right/iconos-de-bandeja/volume.png" alt="Volumen">
+          <span id="battery-widget">
+            <img id="battery-icon" src="public/img/taskbar/taskbar-right/iconos-de-bandeja/bateria-llena.png" alt="Batería">
+            <span id="battery-percent">100%</span>
+          </span>
         </button>
-        <button id="lock-screen-btn" class="start-footer-btn" type="button" title="Bloquear equipo">
-          <span>🔒</span>
-        </button>
-      </div>
-    </aside>
 
-    <!-- Panel Windows Search -->
-    <aside id="search-panel" aria-hidden="true">
-      <div class="search-bar-wrap">
-        <img src="public/img/taskbar/search.png" alt="Buscar">
-        <input id="search-input" type="text" placeholder="Buscar aplicaciones en Windows...">
-      </div>
-
-      <div class="search-tabs">
-        <button class="search-tab active" type="button">Todo</button>
-        <button class="search-tab" type="button">Aplicaciones</button>
-        <button class="search-tab" type="button">Documentos</button>
-        <button class="search-tab" type="button">Web</button>
-      </div>
-
-      <div class="search-section-title">Aplicaciones disponibles</div>
-
-      <div id="search-apps-list" class="search-quick-list"></div>
-    </aside>
-
-    <!-- Vista de Tareas (Task View) -->
-    <section id="task-view-panel" aria-hidden="true">
-      <div id="task-view-windows-area" class="task-view-windows-area">
-        <span id="active-desktop-label" class="task-view-desktop-badge">Escritorio 1</span>
-        <div id="task-view-empty-card" class="task-view-empty-card">No hay ventanas abiertas en este escritorio</div>
-        <div id="task-view-open-grid" class="task-view-open-grid"></div>
-      </div>
-
-      <div id="virtual-desktops-bar" class="task-view-desktops-bar">
-        <div class="virtual-desktop-card active" data-desktop-number="1">
-          <span class="virtual-desktop-label">Escritorio 1</span>
-        </div>
-        <div class="virtual-desktop-card" data-desktop-number="2">
-          <span class="virtual-desktop-label">Escritorio 2</span>
-        </div>
-        <button id="new-desktop-btn" class="new-desktop-btn" type="button">+ Nuevo escritorio</button>
-      </div>
-    </section>
-
-    <!-- Mini Calendario al tocar fecha y hora -->
-    <aside id="calendar-flyout" aria-hidden="true">
-      <div class="cal-flyout-header">
-        <span id="cal-flyout-month" class="cal-flyout-month">Mes Año</span>
-        <div class="cal-flyout-nav">
-          <button id="cal-prev-month" class="cal-flyout-btn" type="button" title="Mes anterior">‹</button>
-          <button id="cal-next-month" class="cal-flyout-btn" type="button" title="Mes siguiente">›</button>
+        <div id="datetime-widget" title="Ver calendario">
+          <span id="clock-time">--:--</span>
+          <span id="clock-date">--/--/----</span>
         </div>
       </div>
-      <div class="cal-flyout-weekdays">
-        <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
-      </div>
-      <div id="cal-flyout-days" class="cal-flyout-days"></div>
-      <div class="cal-flyout-footer">
-        <span id="cal-flyout-selected">Hoy</span>
-        <button id="cal-today-btn" class="cal-flyout-btn" type="button" style="width:auto;padding:0 8px;font-size:11px;font-weight:600;">Hoy</button>
-      </div>
-    </aside>
+    </footer>
   </div>
-
-  <footer id="taskbar">
-    <!-- Taskbar Left (Weather Widget) -->
-    <div class="taskbar-left-wrap">
-      <div id="weather-widget" data-open-app="weather" title="El Tiempo">
-        <img id="weather-icon" src="public/img/taskbar/taskbar-left/sunny.png" alt="Weather">
-        <div class="weather-text">
-          <span id="weather-temp">--°C</span>
-          <span id="weather-desc">Loading...</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Taskbar Center (Apps) -->
-    <div id="taskbar-center" class="taskbar-center">
-      <button id="start-btn" class="taskbar-btn" title="Start" aria-label="Start">
-        <img src="public/img/taskbar/home.png" alt="Start">
-      </button>
-      <button id="search-btn" class="taskbar-btn" title="Search" aria-label="Search">
-        <img src="public/img/taskbar/search.png" alt="Search">
-      </button>
-      <button id="task-view-btn" class="taskbar-btn" title="Task View" aria-label="Task View">
-        <img src="public/img/taskbar/task-view.png" alt="Task View">
-      </button>
-      <button class="taskbar-btn" title="Teams" aria-label="Teams">
-        <img src="public/img/taskbar/teams.png" alt="Teams">
-      </button>
-      <button class="taskbar-btn" title="Copilot" aria-label="Copilot">
-        <img src="public/img/taskbar/copilot.svg" alt="Copilot">
-      </button>
-      <button class="taskbar-btn" data-open-app="edge" title="Microsoft Edge" aria-label="Microsoft Edge">
-        <img src="public/img/apps/icons/edge.png" alt="Edge" onerror="this.src='public/img/taskbar/edge.png'">
-      </button>
-      <button class="taskbar-btn" data-open-app="explorer" title="Explorador de archivos" aria-label="Explorador de archivos">
-        <img src="public/img/taskbar/explorer.png" alt="Explorer">
-      </button>
-      <button class="taskbar-btn" data-open-app="store" title="Microsoft Store" aria-label="Microsoft Store">
-        <img src="public/img/apps/icons/store.png" alt="Store" onerror="this.src='public/img/taskbar/store.png'">
-      </button>
-      <button class="taskbar-btn" data-open-app="settings" title="Ajustes" aria-label="Ajustes">
-        <img src="public/img/apps/icons/settings.png" alt="Ajustes" onerror="this.src='public/img/apps/settings/Personalisation.png'">
-      </button>
-    </div>
-
-    <!-- Taskbar Right (Battery & Date/Time) -->
-    <div id="taskbar-right">
-      <div id="battery-widget">
-        <img id="battery-icon" src="public/img/taskbar/taskbar-right/iconos-de-bandeja/bateria-llena.png" alt="Batería">
-        <span id="battery-percent">--%</span>
-      </div>
-
-      <div id="datetime-widget" title="Ver calendario">
-        <span id="clock-time">--:--</span>
-        <span id="clock-date">--/--/----</span>
-      </div>
-    </div>
-  </footer>
 
   <!-- Temporizador de Startup (2000 ms) -->
   <script>
@@ -1751,7 +2390,7 @@
     })();
   </script>
 
-  <!-- Gestor de Ventanas, App Nativa de Ajustes e Iframes de Aplicaciones -->
+  <!-- Gestor de Ventanas, Quick Settings (Theme / Night Light / Brillo), App Nativa de Ajustes e Iframes -->
   <script>
     const WALLPAPERS = [
       { id: "default", name: "Clásico (Windows 11)", src: "public/img/wallpaper/default/img0.jpg" },
@@ -1804,8 +2443,11 @@
     const settingsState = {
       brightness: 100,
       volume: 75,
+      darkTheme: false,
+      nightLight: false,
+      batterySaver: false,
       doNotDisturb: false,
-      bluetoothOn: true,
+      bluetoothOn: false,
       bluetoothScanMsg: "Listo para emparejar",
       airplaneMode: false,
       wifiOn: true,
@@ -1826,7 +2468,8 @@
     window.win11SettingsState = settingsState;
 
     document.addEventListener("DOMContentLoaded", () => {
-      const lockScreenBtn = document.getElementById("lock-screen-btn");
+      const osSessionShell = document.getElementById("os-session-shell");
+      const nightLightOverlay = document.getElementById("night-light-overlay");
       const desktopEl = document.getElementById("desktop");
       const desktopIconsEl = document.getElementById("desktop-icons");
       const windowsLayer = document.getElementById("windows-layer");
@@ -1841,14 +2484,19 @@
       const datetimeWidget = document.getElementById("datetime-widget");
       const calendarFlyout = document.getElementById("calendar-flyout");
 
-      if (lockScreenBtn) {
-        lockScreenBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          if (typeof window.lockWin11Screen === "function") {
-            window.lockWin11Screen();
-          }
-        });
-      }
+      const trayClusterBtn = document.getElementById("tray-cluster-btn");
+      const quickSettingsFlyout = document.getElementById("quick-settings-flyout");
+      const qsWifiTile = document.getElementById("qs-wifi-tile");
+      const qsBtTile = document.getElementById("qs-bt-tile");
+      const qsFlightTile = document.getElementById("qs-flight-tile");
+      const qsSaverTile = document.getElementById("qs-saver-tile");
+      const qsThemeTile = document.getElementById("qs-theme-tile");
+      const qsNightTile = document.getElementById("qs-night-tile");
+      const qsBrightnessSlider = document.getElementById("qs-brightness-slider");
+      const qsVolumeSlider = document.getElementById("qs-volume-slider");
+      const qsStatusHint = document.getElementById("qs-status-hint");
+      const qsBatteryText = document.getElementById("qs-battery-text");
+      const trayWifiIcon = document.getElementById("tray-wifi-icon");
 
       const openWindows = new Map();
       let topZIndex = 210;
@@ -2056,10 +2704,65 @@
         });
       }
 
-      function applyDesktopVisualPrefs() {
-        if (!desktopEl) return;
+      function setSliderFill(sliderEl, min, max, val) {
+        if (!sliderEl) return;
+        const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+        sliderEl.style.setProperty("--val", `${pct}%`);
+      }
+
+      function applySystemDisplayAndTheme() {
+        document.body.classList.toggle("dark-theme", Boolean(settingsState.darkTheme));
+
+        if (nightLightOverlay) {
+          nightLightOverlay.classList.toggle("active", Boolean(settingsState.nightLight));
+        }
+
+        const effectiveBrightness = settingsState.batterySaver
+          ? Math.max(20, Math.min(settingsState.brightness, 70))
+          : settingsState.brightness;
+
         const contrastFilter = settingsState.highContrast ? "contrast(1.22)" : "contrast(1)";
-        desktopEl.style.filter = `brightness(${settingsState.brightness}%) ${contrastFilter}`;
+        if (osSessionShell) {
+          osSessionShell.style.filter = `brightness(${effectiveBrightness}%) ${contrastFilter}`;
+        }
+
+        if (qsBrightnessSlider) {
+          qsBrightnessSlider.value = String(settingsState.brightness);
+          setSliderFill(qsBrightnessSlider, 20, 120, settingsState.brightness);
+        }
+
+        if (qsVolumeSlider) {
+          qsVolumeSlider.value = String(settingsState.volume);
+          setSliderFill(qsVolumeSlider, 0, 100, settingsState.volume);
+        }
+
+        const wifiActive = Boolean(settingsState.wifiOn && !settingsState.airplaneMode);
+        if (qsWifiTile) qsWifiTile.classList.toggle("active", wifiActive);
+        if (qsBtTile) qsBtTile.classList.toggle("active", Boolean(settingsState.bluetoothOn && !settingsState.airplaneMode));
+        if (qsFlightTile) qsFlightTile.classList.toggle("active", Boolean(settingsState.airplaneMode));
+        if (qsSaverTile) qsSaverTile.classList.toggle("active", Boolean(settingsState.batterySaver));
+        if (qsThemeTile) qsThemeTile.classList.toggle("active", Boolean(settingsState.darkTheme));
+        if (qsNightTile) qsNightTile.classList.toggle("active", Boolean(settingsState.nightLight));
+
+        if (trayWifiIcon) {
+          trayWifiIcon.style.opacity = wifiActive ? "1" : "0.42";
+        }
+
+        const batPctText = document.getElementById("battery-percent")?.textContent || "100%";
+        if (qsBatteryText) {
+          qsBatteryText.textContent = batPctText;
+        }
+
+        if (qsStatusHint) {
+          const tags = [settingsState.darkTheme ? "Oscuro" : "Claro"];
+          if (settingsState.nightLight) tags.push("Luz nocturna");
+          tags.push(`${settingsState.brightness}%`);
+          qsStatusHint.textContent = tags.join(" · ");
+        }
+
+        if (typeof window.syncWin11SearchIcon === "function") {
+          window.syncWin11SearchIcon();
+        }
       }
 
       function syncUserLabels() {
@@ -2101,7 +2804,7 @@
       document.querySelectorAll(".virtual-desktop-card").forEach((card) => {
         card.style.backgroundImage = `url("${initialWp.src}")`;
       });
-      applyDesktopVisualPrefs();
+      applySystemDisplayAndTheme();
       syncUserLabels();
 
       function toggleHtml(isOn) {
@@ -2154,6 +2857,23 @@
             <div class="settings-title">${activeSec.label}</div>
             <div class="settings-subtitle">${activeSec.subtitle}</div>
 
+            <div class="settings-card-list" style="margin-bottom: 14px;">
+              <div class="settings-row-card">
+                <div class="settings-row-meta">
+                  <span class="settings-row-title">Tema oscuro</span>
+                  <span class="settings-row-desc">Cambia el sistema entre modo claro y oscuro</span>
+                </div>
+                <div id="set-dark-wrap">${toggleHtml(settingsState.darkTheme)}</div>
+              </div>
+              <div class="settings-row-card">
+                <div class="settings-row-meta">
+                  <span class="settings-row-title">Luz nocturna (Night Light)</span>
+                  <span class="settings-row-desc">Aplica tono cálido para reducir luz azul</span>
+                </div>
+                <div id="set-night-wrap">${toggleHtml(settingsState.nightLight)}</div>
+              </div>
+            </div>
+
             <div class="settings-preview-box">
               <div class="settings-current-thumb" style="background-image: url('${currentWp.src}')"></div>
               <div class="settings-preview-info">
@@ -2166,6 +2886,18 @@
             <div class="settings-subtitle" style="margin-bottom: 10px;">Elige un fondo de pantalla (6 disponibles)</div>
             <div class="wallpaper-grid">${cardsHtml}</div>
           `;
+
+          contentEl.querySelector("#set-dark-wrap .settings-toggle").addEventListener("click", () => {
+            settingsState.darkTheme = !settingsState.darkTheme;
+            applySystemDisplayAndTheme();
+            renderSettingsBody(containerEl);
+          });
+
+          contentEl.querySelector("#set-night-wrap .settings-toggle").addEventListener("click", () => {
+            settingsState.nightLight = !settingsState.nightLight;
+            applySystemDisplayAndTheme();
+            renderSettingsBody(containerEl);
+          });
 
           contentEl.querySelectorAll(".wallpaper-card[data-wp-src]").forEach((cardBtn) => {
             cardBtn.addEventListener("click", () => {
@@ -2182,11 +2914,11 @@
             <div class="settings-card-list">
               <div class="settings-row-card">
                 <div class="settings-row-meta">
-                  <span class="settings-row-title">Brillo del escritorio</span>
-                  <span class="settings-row-desc">Ajusta la luminosidad visual del fondo</span>
+                  <span class="settings-row-title">Brillo del sistema</span>
+                  <span class="settings-row-desc">Ajusta la luminosidad general</span>
                 </div>
                 <div class="settings-range-wrap">
-                  <input id="set-brightness" type="range" min="45" max="125" value="${settingsState.brightness}">
+                  <input id="set-brightness" type="range" min="20" max="120" value="${settingsState.brightness}">
                   <span class="settings-range-val">${settingsState.brightness}%</span>
                 </div>
               </div>
@@ -2216,11 +2948,12 @@
 
           brInput.addEventListener("input", () => {
             settingsState.brightness = Number(brInput.value);
-            applyDesktopVisualPrefs();
+            applySystemDisplayAndTheme();
             renderSettingsBody(containerEl);
           });
           volInput.addEventListener("input", () => {
             settingsState.volume = Number(volInput.value);
+            applySystemDisplayAndTheme();
             renderSettingsBody(containerEl);
           });
           dndBtn.addEventListener("click", () => {
@@ -2255,6 +2988,7 @@
           contentEl.querySelector("#set-bt-wrap .settings-toggle").addEventListener("click", () => {
             settingsState.bluetoothOn = !settingsState.bluetoothOn;
             settingsState.bluetoothScanMsg = settingsState.bluetoothOn ? "Visible como Win11-PC" : "Bluetooth apagado";
+            applySystemDisplayAndTheme();
             renderSettingsBody(containerEl);
           });
 
@@ -2308,10 +3042,12 @@
 
           contentEl.querySelector("#set-wifi-wrap .settings-toggle").addEventListener("click", () => {
             settingsState.wifiOn = !settingsState.wifiOn;
+            applySystemDisplayAndTheme();
             renderSettingsBody(containerEl);
           });
           contentEl.querySelector("#set-air-wrap .settings-toggle").addEventListener("click", () => {
             settingsState.airplaneMode = !settingsState.airplaneMode;
+            applySystemDisplayAndTheme();
             renderSettingsBody(containerEl);
           });
           contentEl.querySelectorAll("[data-ssid]").forEach((btn) => {
@@ -2319,6 +3055,7 @@
               settingsState.airplaneMode = false;
               settingsState.wifiOn = true;
               settingsState.connectedWifi = btn.dataset.ssid;
+              applySystemDisplayAndTheme();
               renderSettingsBody(containerEl);
             });
           });
@@ -2511,7 +3248,7 @@
           });
           contentEl.querySelector("#set-hc-wrap .settings-toggle").addEventListener("click", () => {
             settingsState.highContrast = !settingsState.highContrast;
-            applyDesktopVisualPrefs();
+            applySystemDisplayAndTheme();
             renderSettingsBody(containerEl);
           });
           return;
@@ -2601,6 +3338,10 @@
         const taskViewPanel = document.getElementById("task-view-panel");
         const taskViewBtn = document.getElementById("task-view-btn");
 
+        if (typeof window.win11PowerActions?.hideMenu === "function") {
+          window.win11PowerActions.hideMenu();
+        }
+
         if (startMenu) {
           startMenu.classList.remove("open");
           startMenu.setAttribute("aria-hidden", "true");
@@ -2624,10 +3365,93 @@
           calendarFlyout.setAttribute("aria-hidden", "true");
         }
         if (datetimeWidget) datetimeWidget.classList.remove("active");
+
+        if (quickSettingsFlyout) {
+          quickSettingsFlyout.classList.remove("open");
+          quickSettingsFlyout.setAttribute("aria-hidden", "true");
+        }
+        if (trayClusterBtn) trayClusterBtn.classList.remove("active");
       }
 
       window.closeWin11SystemPanels = closeSystemPanels;
 
+      /* ==================== EVENTOS DEL CLUSTER Y QUICK SETTINGS ==================== */
+      if (trayClusterBtn && quickSettingsFlyout) {
+        trayClusterBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const willOpen = !quickSettingsFlyout.classList.contains("open");
+          closeSystemPanels();
+          if (willOpen) {
+            applySystemDisplayAndTheme();
+            quickSettingsFlyout.classList.add("open");
+            quickSettingsFlyout.setAttribute("aria-hidden", "false");
+            trayClusterBtn.classList.add("active");
+          }
+        });
+
+        quickSettingsFlyout.addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
+
+        document.addEventListener("click", (e) => {
+          if (
+            quickSettingsFlyout.classList.contains("open") &&
+            !quickSettingsFlyout.contains(e.target) &&
+            !trayClusterBtn.contains(e.target)
+          ) {
+            quickSettingsFlyout.classList.remove("open");
+            quickSettingsFlyout.setAttribute("aria-hidden", "true");
+            trayClusterBtn.classList.remove("active");
+          }
+        });
+      }
+
+      qsWifiTile?.addEventListener("click", () => {
+        if (settingsState.airplaneMode) settingsState.airplaneMode = false;
+        settingsState.wifiOn = !settingsState.wifiOn;
+        applySystemDisplayAndTheme();
+      });
+
+      qsBtTile?.addEventListener("click", () => {
+        if (settingsState.airplaneMode) settingsState.airplaneMode = false;
+        settingsState.bluetoothOn = !settingsState.bluetoothOn;
+        settingsState.bluetoothScanMsg = settingsState.bluetoothOn ? "Visible como Win11-PC" : "Bluetooth apagado";
+        applySystemDisplayAndTheme();
+      });
+
+      qsFlightTile?.addEventListener("click", () => {
+        settingsState.airplaneMode = !settingsState.airplaneMode;
+        applySystemDisplayAndTheme();
+      });
+
+      qsSaverTile?.addEventListener("click", () => {
+        settingsState.batterySaver = !settingsState.batterySaver;
+        applySystemDisplayAndTheme();
+      });
+
+      qsThemeTile?.addEventListener("click", () => {
+        settingsState.darkTheme = !settingsState.darkTheme;
+        applySystemDisplayAndTheme();
+        document.querySelectorAll(".settings-app").forEach((appEl) => renderSettingsBody(appEl));
+      });
+
+      qsNightTile?.addEventListener("click", () => {
+        settingsState.nightLight = !settingsState.nightLight;
+        applySystemDisplayAndTheme();
+        document.querySelectorAll(".settings-app").forEach((appEl) => renderSettingsBody(appEl));
+      });
+
+      qsBrightnessSlider?.addEventListener("input", (e) => {
+        settingsState.brightness = Number(e.target.value);
+        applySystemDisplayAndTheme();
+      });
+
+      qsVolumeSlider?.addEventListener("input", (e) => {
+        settingsState.volume = Number(e.target.value);
+        applySystemDisplayAndTheme();
+      });
+
+      /* ==================== CALENDARIO ==================== */
       const todayRef = new Date();
       let calYear = todayRef.getFullYear();
       let calMonth = todayRef.getMonth();
@@ -2753,6 +3577,7 @@
         renderCalendarFlyout();
       });
 
+      /* ==================== VENTANAS Y TASKBAR ==================== */
       function syncTaskbarAndTaskView() {
         document.querySelectorAll(".taskbar-btn[data-open-app]").forEach((btn) => {
           const appId = btn.dataset.openApp;
@@ -3016,7 +3841,9 @@
   <script src="src/components/taskbar/taskbar-left/weather/js/weather.js"></script>
   <script src="src/components/taskbar/taskbar-right/js/bateria.js"></script>
   <script src="src/components/taskbar/taskbar-right/js/dateandtime.js"></script>
+  <script src="src/components/taskbar/taskbar-right/js/white-search.js"></script>
   <script src="src/components/start-menu/js/boton-inicio-hace-algo.js"></script>
+  <script src="src/components/start-menu/js/apagar-y-reiniciar.js"></script>
   <script src="src/components/search/js/boton-search-hace-algo.js"></script>
   <script src="src/components/task-view/js/boton-vista-de-tareas-hace-algo.js"></script>
 </body>
